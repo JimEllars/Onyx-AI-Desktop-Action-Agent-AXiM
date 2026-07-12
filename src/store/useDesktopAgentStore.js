@@ -80,7 +80,8 @@ export const useDesktopAgentStore = create((set) => ({
     cpuHistory: [],
     memoryHistory: [],
     latencyHistory: [],
-    localQueueCount: 0
+    localQueueCount: 0,
+    systemStatus: 'READY'
   }),
 
   setView: (viewName) => set({ currentView: viewName }),

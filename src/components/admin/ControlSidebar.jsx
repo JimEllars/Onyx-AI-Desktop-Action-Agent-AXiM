@@ -9,7 +9,7 @@ export default function ControlSidebar() {
 
   const handleForceFlush = () => {
     clearLocalBufferQueue();
-    console.log('%c[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks', 'color: cyan');
+    addActionLog({ type: 'system', text: '[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks' });
     setIsFlushing(true);
     setTimeout(() => setIsFlushing(false), 500);
   };
