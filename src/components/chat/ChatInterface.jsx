@@ -7,7 +7,7 @@ import NeuralInterface from '../hud/NeuralInterface';
 
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, setSystemStatus } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, setSystemStatus, setActiveTaskId } = useDesktopAgentStore();
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +35,9 @@ export default function ChatInterface() {
 
     const intent = parseCommand(userMsg);
     
+    const taskId = 'ONYX-CMD-' + Math.floor(Math.random() * 10000);
+    setActiveTaskId(taskId);
+
     setTimeout(() => {
       addActionLog({ type: 'task', text: `Intent Identified: ${intent}` });
       
@@ -47,6 +50,7 @@ export default function ChatInterface() {
         
         addMessage({ role: 'assistant', text: response });
         setSystemStatus('READY');
+        setActiveTaskId(null);
       }, 1200);
     }, 600);
   };
