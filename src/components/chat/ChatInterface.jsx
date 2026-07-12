@@ -7,7 +7,7 @@ import NeuralInterface from '../hud/NeuralInterface';
 
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics } = useDesktopAgentStore();
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -27,6 +27,8 @@ export default function ChatInterface() {
   const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
+    updateCloudflareMetrics();
 
     const userMsg = input;
     setInput('');

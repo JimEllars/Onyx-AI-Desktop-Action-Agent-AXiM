@@ -17,6 +17,7 @@ export const useDesktopAgentStore = create((set) => ({
   memoryUsage: 142,
   cfCacheStatus: 'HIT',
   cfRayId: '8b42f6ad120ea31c',
+  pendingApproval: { id: 'MCP-HITL-7112', agent: 'Pulse Triage Swarm', action: 'Database Subscription Patch', details: 'Modify database row parameter for Affiliate Account #321: adjust subscription_fee compute debt value from 120 to 0.' },
   messages: [
     { id: 1, role: 'assistant', text: 'OnyX Mk3 Online. Vector systems initialized. Awaiting architectural commands, Sir.' }
   ],
@@ -39,6 +40,10 @@ export const useDesktopAgentStore = create((set) => ({
       actionLogs: [{ ...log, id: Date.now(), timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
     };
   }),
+
+  approveAction: () => set({ pendingApproval: null }),
+
+  rejectAction: () => set({ pendingApproval: null }),
 
   updateCloudflareMetrics: () => set((state) => {
     const statuses = ['HIT', 'MISS', 'DYNAMIC'];
