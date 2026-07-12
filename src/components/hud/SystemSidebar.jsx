@@ -6,7 +6,7 @@ import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const { cpuLoad, memoryUsage, networkLatencyMs, updateTelemetry, cloudflareEdgeNode } = useDesktopAgentStore();
+  const { cpuLoad, memoryUsage, networkLatencyMs, updateTelemetry, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
 
   useEffect(() => {
     const interval = setInterval(updateTelemetry, 3000);
@@ -20,15 +20,15 @@ export default function SystemSidebar() {
   ];
 
   return (
-    <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 space-y-6 backdrop-blur-md shadow-inner relative overflow-hidden">
+    <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 space-y-6 backdrop-blur-md shadow-inner relative overflow-hidden flex-1 flex flex-col">
       <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none"></div>
       
-      <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3 flex justify-between items-center">
+      <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3 flex justify-between items-center shrink-0">
         <span>Hardware HUD // {cloudflareEdgeNode}</span>
         <span className="text-[8px] animate-pulse text-emerald-500">LIVE_STREAM</span>
       </h3>
       
-      <div className="space-y-5">
+      <div className="space-y-5 shrink-0">
         {stats.map((stat, i) => (
           <div key={i} className="space-y-2">
             <div className="flex items-center justify-between group">
@@ -49,10 +49,19 @@ export default function SystemSidebar() {
           </div>
         ))}
       </div>
+
+      <div className="shrink-0 pt-2 border-t border-slate-800/50">
+          <div className="flex justify-between items-center">
+              <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Active Task ID</span>
+              <span className="text-[10px] text-purple-400 font-mono font-bold">{activeTaskId || 'IDLE'}</span>
+          </div>
+      </div>
       
-      <div className="pt-4 border-t border-slate-800">
-        <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-3 block">Neural Pulse</span>
-        <TelemetryChart />
+      <div className="pt-4 border-t border-slate-800 flex-1 flex flex-col min-h-0">
+        <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-3 block shrink-0">Neural Pulse</span>
+        <div className="flex-1 min-h-0">
+          <TelemetryChart />
+        </div>
       </div>
     </div>
   );

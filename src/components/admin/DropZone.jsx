@@ -7,11 +7,12 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
-  const { incrementLocalBufferQueue, addActionLog } = useDesktopAgentStore();
+  const { incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
     e.preventDefault();
     setIsActiveDragging(false);
+    updateCloudflareMetrics();
 
     let droppedText = '';
     if (e.dataTransfer.items) {

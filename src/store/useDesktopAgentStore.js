@@ -14,6 +14,8 @@ export const useDesktopAgentStore = create((set) => ({
   cloudflareEdgeNode: 'DFW-Core',
   cpuLoad: 12,
   memoryUsage: 142,
+  cfCacheStatus: 'HIT',
+  cfRayId: '8b42f6ad120ea31c',
   messages: [
     { id: 1, role: 'assistant', text: 'OnyX Mk3 Online. Vector systems initialized. Awaiting architectural commands, Sir.' }
   ],
@@ -29,6 +31,16 @@ export const useDesktopAgentStore = create((set) => ({
     actionLogs: [{ ...log, id: Date.now(), timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
   })),
 
+  updateCloudflareMetrics: () => set((state) => {
+    const statuses = ['HIT', 'MISS', 'DYNAMIC'];
+    const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    return {
+      cfCacheStatus: newStatus,
+      cfRayId: newRayId,
+    };
+  }),
+
   updateTelemetry: () => set((state) => {
     const newCpu = Math.max(5, Math.min(95, state.cpuLoad + (Math.random() * 10 - 5)));
     const newMemory = Math.max(100, Math.min(500, state.memoryUsage + (Math.random() * 20 - 10)));
@@ -38,6 +50,10 @@ export const useDesktopAgentStore = create((set) => ({
     const edges = ['DFW-Core', 'ORD-Transit', 'ATL-Ingress'];
     const newEdge = Math.random() > 0.8 ? edges[Math.floor(Math.random() * edges.length)] : state.cloudflareEdgeNode;
 
+    const statuses = ['HIT', 'MISS', 'DYNAMIC'];
+    const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+
     return {
       cloudflareEdgeNode: newEdge,
       cpuLoad: newCpu,
@@ -46,7 +62,16 @@ export const useDesktopAgentStore = create((set) => ({
       cpuHistory: [...state.cpuHistory, newCpu].slice(-20),
       memoryHistory: [...state.memoryHistory, newMemory].slice(-20),
       latencyHistory: [...state.latencyHistory, newLatency].slice(-20),
+      cfCacheStatus: newStatus,
+      cfRayId: newRayId,
     };
+  }),
+
+  clearCacheBlocks: () => set({
+    cpuHistory: [],
+    memoryHistory: [],
+    latencyHistory: [],
+    localQueueCount: 0
   }),
 
   setView: (viewName) => set({ currentView: viewName }),
