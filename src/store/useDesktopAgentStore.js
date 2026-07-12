@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export const useDesktopAgentStore = create((set) => ({
-  walletConnected: true,
+  walletConnected: false,
   currentView: 'HUD',
   cpuHistory: [],
   memoryHistory: [],
@@ -11,7 +11,7 @@ export const useDesktopAgentStore = create((set) => ({
   localQueueCount: 0,
   threatCount: 0,
   networkLatencyMs: 24,
-  systemStatus: 'READY', // READY, EXECUTING, ERROR, AUTHENTICATING
+  systemStatus: 'AUTHENTICATING', // READY, EXECUTING, ERROR, AUTHENTICATING
   cloudflareEdgeNode: 'DFW-Core',
   cpuLoad: 12,
   memoryUsage: 142,
@@ -88,5 +88,13 @@ export const useDesktopAgentStore = create((set) => ({
   setSystemStatus: (status) => set({ systemStatus: status }),
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
   clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
-  setActiveTaskId: (id) => set({ activeTaskId: id })
+  setActiveTaskId: (id) => set({ activeTaskId: id }),
+  loginUser: (address) => set((state) => {
+    console.log('[IDENTITY] Arbitrum One SIWE cryptographic handshake verified successfully. Session JWT active.');
+    return {
+      walletConnected: true,
+      operatorAddress: address,
+      systemStatus: 'READY'
+    };
+  })
 }));

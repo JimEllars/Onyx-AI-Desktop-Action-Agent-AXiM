@@ -7,7 +7,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
-  const { incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics } = useDesktopAgentStore();
+  const { incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
     e.preventDefault();
@@ -33,6 +33,18 @@ export default function DropZone({ targetApplication }) {
       }
     }
 
+
+    // Asguard Interceptor Shield
+    const lowerText = droppedText.toLowerCase();
+    const forbiddenStrings = ['rm -rf', 'sudo', 'drop table', 'format c:'];
+    const matchedSignature = forbiddenStrings.find(str => lowerText.includes(str));
+
+    if (matchedSignature) {
+      addActionLog({ type: 'error', text: `[ASGUARD_SHIELD] Intercepted malicious payload signature: "${matchedSignature}". Connection severed.` });
+      setSystemStatus('ERROR');
+      return;
+    }
+
     try {
       await invoke('execute_batch_upload', { payload: JSON.stringify({ data: droppedText, target_app: targetApplication }) });
       addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}]` });
@@ -45,14 +57,14 @@ export default function DropZone({ targetApplication }) {
 
   return (
     <motion.div
-      onDragOver={(e) => { e.preventDefault(); setIsActiveDragging(true); }}
+      onDragOver={(e) => { e.preventDefault(); if (systemStatus !== 'ERROR') setIsActiveDragging(true); }}
       onDragLeave={() => setIsActiveDragging(false)}
-      onDrop={handleDrop}
+      onDrop={systemStatus === 'ERROR' ? (e) => { e.preventDefault(); setIsActiveDragging(false); } : handleDrop}
       animate={{ 
-        borderColor: isDragging ? '#10b981' : '#1e293b',
-        backgroundColor: isDragging ? 'rgba(16,185,129,0.05)' : 'transparent'
+        borderColor: systemStatus === 'ERROR' ? '#ef4444' : (isDragging ? '#10b981' : '#1e293b'),
+        backgroundColor: isDragging && systemStatus !== 'ERROR' ? 'rgba(16,185,129,0.05)' : 'transparent'
       }}
-      className="flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all cursor-crosshair group"
+      className={`flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all ${systemStatus === 'ERROR' ? 'cursor-not-allowed opacity-50' : 'cursor-crosshair'} group`}
     >
       <div className="flex flex-col items-center gap-3 pointer-events-none">
         <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
