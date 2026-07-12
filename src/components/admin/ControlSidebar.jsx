@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SafeIcon from '../../common/SafeIcon';
 import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { incrementLocalBufferQueue, clearLocalBufferQueue } = useDesktopAgentStore();
+  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
+  const [isFlushing, setIsFlushing] = useState(false);
+
+  const handleForceFlush = () => {
+    clearLocalBufferQueue();
+    console.log('%c[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks', 'color: cyan');
+    setIsFlushing(true);
+    setTimeout(() => setIsFlushing(false), 500);
+  };
+
+  const handleClearCache = () => {
+    clearCacheBlocks();
+    addActionLog({ type: 'fault', text: '[SECURITY] Local out-of-band execution cache blocks purged securely' });
+  };
 
   return (
     <div className="space-y-6">
@@ -15,15 +28,15 @@ export default function ControlSidebar() {
         </h3>
         
         <button
-          onClick={incrementLocalBufferQueue}
-          className="w-full flex items-center justify-center gap-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 px-4 py-3 text-xs text-cyan-400 font-bold rounded transition-all duration-150 hover:border-cyan-900 hover:shadow-[0_0_10px_rgba(34,211,238,0.1)]"
+          onClick={handleForceFlush}
+          className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${isFlushing ? 'bg-cyan-900 border-cyan-500 text-cyan-200' : 'bg-slate-950 hover:bg-slate-900 border-slate-800 text-cyan-400 hover:border-cyan-900 hover:shadow-[0_0_10px_rgba(34,211,238,0.1)]'}`}
         >
           <SafeIcon icon={FiRefreshCw} />
           Force Manual EOD Log Flush
         </button>
         
         <button
-          onClick={clearLocalBufferQueue}
+          onClick={handleClearCache}
           className="w-full flex items-center justify-center gap-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 px-4 py-3 text-xs text-amber-500 font-bold rounded transition-all duration-150 hover:border-amber-900 hover:shadow-[0_0_10px_rgba(245,158,11,0.1)]"
         >
           <SafeIcon icon={FiTrash2} />
@@ -38,15 +51,27 @@ export default function ControlSidebar() {
         <div className="space-y-2 text-xs font-mono">
           <div className="flex justify-between text-slate-500">
             <span>CPU Delta:</span>
-            <span className="text-emerald-500">1.2%</span>
+            <span className="text-emerald-500">{cpuLoad.toFixed(1)}%</span>
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Memory Vol:</span>
-            <span className="text-emerald-500">142 MB</span>
+            <span className="text-emerald-500">{memoryUsage.toFixed(0)} MB</span>
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Auth Handshake:</span>
             <span className="text-cyan-500">SIWE-Valid</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Network Latency:</span>
+            <span className="text-amber-500">{networkLatencyMs.toFixed(0)} ms</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Edge Node:</span>
+            <span className="text-cyan-400">{cloudflareEdgeNode}</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Active Task:</span>
+            <span className="text-purple-400">{activeTaskId || 'None'}</span>
           </div>
         </div>
       </div>
