@@ -6,12 +6,15 @@ export default function LoginGateway() {
   const { loginUser } = useDesktopAgentStore();
   const [isLoading, setIsLoading] = useState(false);
   const [passkey, setPasskey] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = () => {
     if (passkey !== 'ONYX-ACCESS-2026') {
-      alert('Access Denied: Invalid Security Signature');
+      setErrorMessage('Access Denied: Invalid Security Handshake Signature registered at Edge');
       return;
     }
+
+    setErrorMessage('');
 
     setIsLoading(true);
     // Simulate loading thread loop
@@ -41,6 +44,12 @@ export default function LoginGateway() {
             <p className="mb-2">SYSTEM: Authentication gateway active.</p>
             <p>AWAITING: Valid SIWE cryptographic handshake.</p>
           </div>
+
+          {errorMessage && (
+            <div className="bg-red-950/20 border border-red-500/30 text-red-400 text-xs font-bold font-mono tracking-wide p-3 rounded text-center">
+              {errorMessage}
+            </div>
+          )}
 
           <input
             type="password"
