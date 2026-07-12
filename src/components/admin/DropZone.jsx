@@ -40,7 +40,7 @@ export default function DropZone({ targetApplication }) {
     const matchedSignature = forbiddenStrings.find(str => lowerText.includes(str));
 
     if (matchedSignature) {
-      addActionLog({ type: 'error', text: `[ASGUARD_SHIELD] Intercepted malicious payload signature: "${matchedSignature}". Connection severed.` });
+      addActionLog({ type: 'error', text: `[FAULT] [ASGUARD_SHIELD] Intercepted malicious payload signature: "${matchedSignature}". Connection severed.` });
       setSystemStatus('ERROR');
       return;
     }
