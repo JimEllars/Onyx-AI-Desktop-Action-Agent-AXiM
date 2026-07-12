@@ -4,7 +4,7 @@ import { FiShield, FiDatabase, FiLock } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localQueueCount, operatorAddress } = useDesktopAgentStore();
+  const { localQueueCount, operatorAddress, currentView, setCurrentView } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -18,6 +18,10 @@ export default function AgentHeader() {
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
             <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">System Status: Nominal</span>
           </div>
+        </div>
+        <div className="ml-4 flex gap-2">
+          <button onClick={() => setCurrentView('HUD')} className={`px-3 py-1 text-xs font-bold rounded ${currentView === 'HUD' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-slate-500 hover:text-slate-300'}`}>HUD</button>
+          <button onClick={() => setCurrentView('INGRESS')} className={`px-3 py-1 text-xs font-bold rounded ${currentView === 'INGRESS' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-slate-500 hover:text-slate-300'}`}>INGRESS</button>
         </div>
       </div>
 

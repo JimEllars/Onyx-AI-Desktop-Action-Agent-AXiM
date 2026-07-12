@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
 import SafeIcon from '../../common/SafeIcon';
 import { FiDownloadCloud, FiFileText } from 'react-icons/fi';
@@ -8,11 +9,37 @@ export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
   const { incrementLocalBufferQueue, addActionLog } = useDesktopAgentStore();
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     setIsActiveDragging(false);
-    incrementLocalBufferQueue();
-    addActionLog({ type: 'task', text: `Batch ingestion detected: [${targetApplication}]` });
+
+    let droppedText = '';
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind === 'string' && e.dataTransfer.items[i].type.match('^text/plain')) {
+          droppedText = await new Promise(resolve => e.dataTransfer.items[i].getAsString(resolve));
+          break;
+        } else if (e.dataTransfer.items[i].kind === 'file') {
+          const file = e.dataTransfer.items[i].getAsFile();
+          droppedText = await file.text();
+          break;
+        }
+      }
+    } else {
+      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        droppedText = await e.dataTransfer.files[i].text();
+        break;
+      }
+    }
+
+    try {
+      await invoke('execute_batch_upload', { payload: JSON.stringify({ data: droppedText, target_app: targetApplication }) });
+      addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}]` });
+    } catch (error) {
+      console.warn('[CONTAINER_FALLBACK] Ingestion routed to localized virtual buffer queue', error);
+      incrementLocalBufferQueue();
+      addActionLog({ type: 'task', text: `Batch ingestion detected (fallback): [${targetApplication}]` });
+    }
   };
 
   return (
