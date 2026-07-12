@@ -17,7 +17,9 @@ export const useDesktopAgentStore = create((set) => ({
   memoryUsage: 142,
   cfCacheStatus: 'HIT',
   cfRayId: '8b42f6ad120ea31c',
-  pendingApproval: { id: 'MCP-HITL-7112', agent: 'Pulse Triage Swarm', action: 'Database Subscription Patch', details: 'Modify database row parameter for Affiliate Account #321: adjust subscription_fee compute debt value from 120 to 0.' },
+  pendingApprovals: [
+    { id: 'MCP-HITL-7112', agent: 'Pulse Triage Swarm', action: 'Database Subscription Patch', details: 'Modify database row parameter for Affiliate Account #321: adjust subscription_fee compute debt value from 120 to 0.' }
+  ],
   messages: [
     { id: 1, role: 'assistant', text: 'OnyX Mk3 Online. Vector systems initialized. Awaiting architectural commands, Sir.' }
   ],
@@ -41,9 +43,13 @@ export const useDesktopAgentStore = create((set) => ({
     };
   }),
 
-  approveAction: () => set({ pendingApproval: null }),
+  approveAction: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
 
-  rejectAction: () => set({ pendingApproval: null }),
+  rejectAction: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
+
+  addPendingApproval: (approval) => set((state) => ({
+    pendingApprovals: [...state.pendingApprovals, approval]
+  })),
 
   updateCloudflareMetrics: () => set((state) => {
     const statuses = ['HIT', 'MISS', 'DYNAMIC'];

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ActionConsole({ className = "" }) {
-  const { actionLogs, pendingApproval, approveAction, rejectAction, addActionLog } = useDesktopAgentStore();
+  const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog } = useDesktopAgentStore();
   const logsEndRef = useRef(null);
 
   useEffect(() => {
@@ -55,44 +55,45 @@ export default function ActionConsole({ className = "" }) {
           })}
         </AnimatePresence>
                 <AnimatePresence initial={false}>
-          {pendingApproval && (
+          {pendingApprovals && pendingApprovals.map(approval => (
             <motion.div
+              key={approval.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-purple-950/20 border border-purple-500/30 rounded p-4 mb-3"
+              className="bg-purple-950/20 border border-purple-500/30 rounded p-3 mb-3 flex flex-col gap-3"
             >
-              <div className="text-purple-400 font-bold mb-2 tracking-widest">[AWAITING_OPERATOR_SIGNATURE]</div>
-              <div className="grid grid-cols-[80px_1fr] gap-2 text-slate-300 mb-4">
+              <div className="text-purple-400 font-bold tracking-widest text-[10px]">[AWAITING_OPERATOR_SIGNATURE] - {approval.id}</div>
+              <div className="grid grid-cols-[80px_1fr] gap-1 text-slate-300 text-[10px]">
                 <span className="text-slate-500">AGENT:</span>
-                <span>{pendingApproval.agent}</span>
+                <span>{approval.agent}</span>
                 <span className="text-slate-500">ACTION:</span>
-                <span className="text-emerald-400">{pendingApproval.action}</span>
+                <span className="text-emerald-400">{approval.action}</span>
                 <span className="text-slate-500">DETAILS:</span>
-                <span className="leading-relaxed">{pendingApproval.details}</span>
+                <span className="leading-relaxed">{approval.details}</span>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2 mt-1">
                 <button
                   onClick={() => {
-                    approveAction();
-                    addActionLog({ type: 'system', text: `[HITL] Operator signature validated. Resuming onyx_mk3 MCP workflow execution thread for task node: ${pendingApproval.id}` });
+                    approveAction(approval.id);
+                    addActionLog({ type: 'system', text: `[HITL] Operator signature validated. Resuming onyx_mk3 MCP workflow execution thread for task node: ${approval.id}` });
                   }}
-                  className="px-4 py-2 bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors rounded"
+                  className="px-3 py-1.5 bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors rounded text-[9px]"
                 >
                   [APPROVE_EXECUTION]
                 </button>
                 <button
                   onClick={() => {
-                    rejectAction();
-                    addActionLog({ type: 'error', text: `[HITL] Operator rejected proposal packet. Terminating execution loop.` });
+                    rejectAction(approval.id);
+                    addActionLog({ type: 'error', text: `[HITL] Operator rejected proposal packet. Terminating execution loop for node: ${approval.id}` });
                   }}
-                  className="px-4 py-2 bg-red-950/30 border border-red-500/50 text-red-400 hover:bg-red-900/50 hover:text-red-300 transition-colors rounded"
+                  className="px-3 py-1.5 bg-red-950/30 border border-red-500/50 text-red-400 hover:bg-red-900/50 hover:text-red-300 transition-colors rounded text-[9px]"
                 >
                   [REJECT_EXECUTION]
                 </button>
               </div>
             </motion.div>
-          )}
+          ))}
         </AnimatePresence>
         <div ref={logsEndRef} />
         </div>
