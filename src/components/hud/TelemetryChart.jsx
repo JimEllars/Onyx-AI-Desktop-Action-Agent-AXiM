@@ -21,7 +21,7 @@ export default function TelemetryChart() {
       show: true,
       trigger: 'axis',
       formatter: (params) => {
-        let result = `${params[0].name || ''}<br/>`;
+        let result = `<span style="color:#64748b;font-weight:bold;">[TELEMETRY_STREAM]</span><br/>`;
         params.forEach(param => {
           let suffix = '';
           if (param.seriesName === 'CPU Core Use') suffix = '%';

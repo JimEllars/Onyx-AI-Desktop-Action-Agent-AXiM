@@ -4,10 +4,14 @@ import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
+  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
 
   const handleForceFlush = async () => {
+    if (systemStatus === 'ERROR') {
+      addActionLog({ type: 'warning', text: '[SECURITY] Remote worker sync suspended. Clear local cache exception blocks to restore flush capabilities.' });
+      return;
+    }
     setIsFlushing(true);
     addActionLog({ type: 'system', text: '[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks' });
     addActionLog({ type: 'network', text: '[CONNECT] Tunneling encrypted payload packet through Cloudflare Worker node at endpoint: /api/v1/desktop/archive...' });
