@@ -6,7 +6,7 @@ import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
+  const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId } = useDesktopAgentStore();
 
 
   const stats = [
@@ -44,6 +44,22 @@ export default function SystemSidebar() {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="shrink-0 pt-4 border-t border-slate-800/50 space-y-3 mb-2">
+        <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase block border-l-2 border-emerald-500 pl-2">Cloudflare Edge Gateway Context</span>
+        <div className="flex justify-between items-center bg-slate-950/50 p-2 rounded border border-slate-800">
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Cache Status</span>
+            <span className={`text-[10px] font-mono font-bold ${cfCacheStatus === 'HIT' ? 'text-emerald-400' : (cfCacheStatus === 'MISS' ? 'text-red-400' : 'text-amber-400')}`}>
+              {cfCacheStatus}
+            </span>
+        </div>
+        <div className="flex justify-between items-center bg-slate-950/50 p-2 rounded border border-slate-800">
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Active Ray ID</span>
+            <span className="text-[10px] text-cyan-400 font-mono font-bold bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">
+              {cfRayId?.substring(0, 12)}
+            </span>
+        </div>
       </div>
 
       <div className="shrink-0 pt-2 border-t border-slate-800/50">

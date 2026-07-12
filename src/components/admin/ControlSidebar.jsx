@@ -23,6 +23,7 @@ export default function ControlSidebar() {
     clearCacheBlocks();
     addActionLog({ type: 'system', text: '[RESET] Volatile cache memory blocks de-allocated. Node execution lanes recycled successfully.' });
     addActionLog({ type: 'fault', text: '[SECURITY] Local out-of-band execution cache blocks purged securely' });
+    addActionLog({ type: 'system', text: '[RECOVERY] Asguard Shield exception cleared. Terminal input channels unlocked.' });
   };
 
   return (
