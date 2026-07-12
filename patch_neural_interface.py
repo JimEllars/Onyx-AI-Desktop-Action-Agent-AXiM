@@ -1,4 +1,9 @@
-import React from 'react';
+import re
+
+with open("src/components/hud/NeuralInterface.jsx", "r") as f:
+    content = f.read()
+
+replacement = """import React from 'react';
 import { motion } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
@@ -18,7 +23,7 @@ export default function NeuralInterface() {
   let coreBarDuration = 0.8;
 
   if (systemStatus === 'ERROR') {
-    outerRingColor = "border-red-500/50 border-t-red-500/50";
+    outerRingColor = "border-red-500/50 border-t-red-500/80";
     middleRingColor = "border-red-500/50";
     innerCoreColor = "border-red-500/40 shadow-[0_0_30px_rgba(239,68,68,0.2)]";
     pulseBarsColor = "bg-red-400/80 shadow-[0_0_8px_#ef4444]";
@@ -26,7 +31,7 @@ export default function NeuralInterface() {
     outerRotationDuration = 4;
     pulseScale = [1, 1.2, 1];
   } else if (systemStatus === 'EXECUTING') {
-    outerRingColor = "border-cyan-500/50 border-t-purple-500/50";
+    outerRingColor = "border-cyan-500/50 border-t-purple-500/80";
     middleRingColor = "border-cyan-500/50";
     innerCoreColor = "border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.2)]";
     pulseBarsColor = "bg-cyan-400/80 shadow-[0_0_8px_#06b6d4]";
@@ -43,7 +48,7 @@ export default function NeuralInterface() {
         transition={{ duration: outerRotationDuration, repeat: Infinity, ease: "linear" }}
         className={`absolute inset-0 border-2 rounded-full ${outerRingColor}`}
       />
-      
+
       {/* Middle Pulse Ring */}
       <motion.div
         animate={{ scale: pulseScale, opacity: [0.3, 0.6, 0.3] }}
@@ -54,7 +59,7 @@ export default function NeuralInterface() {
       {/* Inner Core */}
       <div className={`relative z-10 w-24 h-24 rounded-full bg-slate-950 border flex items-center justify-center overflow-hidden ${innerCoreColor}`}>
         <motion.div
-          animate={{ 
+          animate={{
             height: ["20%", "60%", "30%", "80%", "40%"],
           }}
           transition={{ duration: coreDuration, repeat: Infinity, ease: "easeInOut" }}
@@ -85,3 +90,7 @@ export default function NeuralInterface() {
     </div>
   );
 }
+"""
+
+with open("src/components/hud/NeuralInterface.jsx", "w") as f:
+    f.write(replacement)
