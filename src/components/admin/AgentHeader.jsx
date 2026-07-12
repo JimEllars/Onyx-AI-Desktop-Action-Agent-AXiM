@@ -15,8 +15,30 @@ export default function AgentHeader() {
         <div>
           <h1 className="text-sm font-bold tracking-[0.3em] text-slate-100 uppercase">OnyX Mk3 // Action Agent</h1>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-            <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">System Status: {systemStatus}</span>
+            {systemStatus === 'READY' && (
+              <>
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_5px_#10b981]"></span>
+                <span className="text-[9px] text-emerald-400 font-bold tracking-widest uppercase drop-shadow-[0_0_2px_rgba(16,185,129,0.8)]">System Status: {systemStatus}</span>
+              </>
+            )}
+            {systemStatus === 'PROCESSING' && (
+              <>
+                <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_5px_#06b6d4]"></span>
+                <span className="text-[9px] text-cyan-400 font-bold tracking-widest uppercase animate-pulse">System Status: {systemStatus}</span>
+              </>
+            )}
+            {systemStatus === 'ERROR' && (
+              <>
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-ping shadow-[0_0_5px_#ef4444]"></span>
+                <span className="text-[9px] text-red-500 font-bold tracking-widest uppercase">System Status: {systemStatus}</span>
+              </>
+            )}
+            {!['READY', 'PROCESSING', 'ERROR'].includes(systemStatus) && (
+              <>
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">System Status: {systemStatus}</span>
+              </>
+            )}
           </div>
         </div>
         <div className="ml-4 flex gap-2">
