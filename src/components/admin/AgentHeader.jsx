@@ -4,7 +4,7 @@ import { FiShield, FiDatabase, FiLock } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localQueueCount, operatorAddress, currentView, setCurrentView } = useDesktopAgentStore();
+  const { localQueueCount, operatorAddress, currentView, setView } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -20,8 +20,8 @@ export default function AgentHeader() {
           </div>
         </div>
         <div className="ml-4 flex gap-2">
-          <button onClick={() => setCurrentView('HUD')} className={`px-3 py-1 text-xs font-bold rounded ${currentView === 'HUD' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-slate-500 hover:text-slate-300'}`}>HUD</button>
-          <button onClick={() => setCurrentView('INGRESS')} className={`px-3 py-1 text-xs font-bold rounded ${currentView === 'INGRESS' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-slate-500 hover:text-slate-300'}`}>INGRESS</button>
+          <button onClick={() => setView('HUD')} className={`px-3 py-1 text-xs font-bold rounded ${currentView === 'HUD' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-slate-500 hover:text-slate-300'}`}>HUD</button>
+          <button onClick={() => setView('INGRESS')} className={`px-3 py-1 text-xs font-bold rounded ${currentView === 'INGRESS' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' : 'text-slate-500 hover:text-slate-300'}`}>INGRESS</button>
         </div>
       </div>
 
