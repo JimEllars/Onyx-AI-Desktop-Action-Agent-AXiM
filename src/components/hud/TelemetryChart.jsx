@@ -18,10 +18,15 @@ export default function TelemetryChart() {
     },
     grid: { top: 10, bottom: 25, left: 10, right: 10, containLabel: false },
     xAxis: { show: false, type: 'category' },
-    yAxis: { show: false, type: 'value' },
+    yAxis: [
+      { show: false, type: 'value', scale: true },
+      { show: false, type: 'value', scale: true },
+      { show: false, type: 'value', scale: true }
+    ],
     series: [
       {
         name: 'CPU Core Use',
+        yAxisIndex: 0,
         data: cpuHistory,
         type: 'line',
         smooth: true,
@@ -41,6 +46,7 @@ export default function TelemetryChart() {
       },
       {
         name: 'Physical Memory Delta',
+        yAxisIndex: 1,
         data: memoryHistory,
         type: 'line',
         smooth: true,
@@ -60,6 +66,7 @@ export default function TelemetryChart() {
       },
       {
         name: 'Cloudflare Edge Latency',
+        yAxisIndex: 2,
         data: latencyHistory,
         type: 'line',
         smooth: true,

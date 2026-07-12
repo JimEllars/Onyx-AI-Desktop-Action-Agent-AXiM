@@ -6,7 +6,7 @@ import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const { cpuLoad, memoryUsage, networkLatencyMs, updateTelemetry } = useDesktopAgentStore();
+  const { cpuLoad, memoryUsage, networkLatencyMs, updateTelemetry, cloudflareEdgeNode } = useDesktopAgentStore();
 
   useEffect(() => {
     const interval = setInterval(updateTelemetry, 3000);
@@ -24,7 +24,7 @@ export default function SystemSidebar() {
       <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none"></div>
       
       <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3 flex justify-between items-center">
-        <span>Hardware HUD</span>
+        <span>Hardware HUD // {cloudflareEdgeNode}</span>
         <span className="text-[8px] animate-pulse text-emerald-500">LIVE_STREAM</span>
       </h3>
       

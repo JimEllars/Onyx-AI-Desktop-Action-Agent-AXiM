@@ -11,6 +11,7 @@ export const useDesktopAgentStore = create((set) => ({
   localQueueCount: 0,
   networkLatencyMs: 24,
   systemStatus: 'READY', // READY, EXECUTING, ERROR, AUTHENTICATING
+  cloudflareEdgeNode: 'DFW-Core',
   cpuLoad: 12,
   memoryUsage: 142,
   messages: [
@@ -33,7 +34,12 @@ export const useDesktopAgentStore = create((set) => ({
     const newMemory = Math.max(100, Math.min(500, state.memoryUsage + (Math.random() * 20 - 10)));
     const newLatency = Math.max(15, Math.min(60, state.networkLatencyMs + (Math.random() * 4 - 2)));
 
+    // Cycle edge node occasionally
+    const edges = ['DFW-Core', 'ORD-Transit', 'ATL-Ingress'];
+    const newEdge = Math.random() > 0.8 ? edges[Math.floor(Math.random() * edges.length)] : state.cloudflareEdgeNode;
+
     return {
+      cloudflareEdgeNode: newEdge,
       cpuLoad: newCpu,
       memoryUsage: newMemory,
       networkLatencyMs: newLatency,
