@@ -3,7 +3,7 @@ import ReactECharts from 'echarts-for-react';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function TelemetryChart() {
-  const { cpuLoad } = useDesktopAgentStore();
+  const { cpuLoad, cpuHistory } = useDesktopAgentStore();
 
   const option = {
     backgroundColor: 'transparent',
@@ -13,7 +13,7 @@ export default function TelemetryChart() {
     yAxis: { show: false, type: 'value', min: 0, max: 100 },
     series: [
       {
-        data: Array(20).fill(0).map(() => Math.random() * 40 + 20),
+        data: cpuHistory,
         type: 'line',
         smooth: true,
         symbol: 'none',

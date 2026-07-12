@@ -2,6 +2,10 @@ import { create } from 'zustand';
 
 export const useDesktopAgentStore = create((set) => ({
   walletConnected: true,
+  currentView: 'HUD',
+  cpuHistory: Array(20).fill(12),
+  memoryHistory: Array(20).fill(142),
+  latencyHistory: Array(20).fill(24),
   operatorAddress: "0x742d...444",
   activeTaskId: null,
   localQueueCount: 0,
@@ -24,12 +28,22 @@ export const useDesktopAgentStore = create((set) => ({
     actionLogs: [{ ...log, id: Date.now(), timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
   })),
 
-  updateTelemetry: () => set((state) => ({
-    cpuLoad: Math.max(5, Math.min(95, state.cpuLoad + (Math.random() * 10 - 5))),
-    memoryUsage: Math.max(100, Math.min(500, state.memoryUsage + (Math.random() * 20 - 10))),
-    networkLatencyMs: Math.max(15, Math.min(60, state.networkLatencyMs + (Math.random() * 4 - 2)))
-  })),
+  updateTelemetry: () => set((state) => {
+    const newCpu = Math.max(5, Math.min(95, state.cpuLoad + (Math.random() * 10 - 5)));
+    const newMemory = Math.max(100, Math.min(500, state.memoryUsage + (Math.random() * 20 - 10)));
+    const newLatency = Math.max(15, Math.min(60, state.networkLatencyMs + (Math.random() * 4 - 2)));
 
+    return {
+      cpuLoad: newCpu,
+      memoryUsage: newMemory,
+      networkLatencyMs: newLatency,
+      cpuHistory: [...state.cpuHistory, newCpu].slice(-20),
+      memoryHistory: [...state.memoryHistory, newMemory].slice(-20),
+      latencyHistory: [...state.latencyHistory, newLatency].slice(-20),
+    };
+  }),
+
+  setCurrentView: (view) => set({ currentView: view }),
   setSystemStatus: (status) => set({ systemStatus: status }),
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
   clearLocalBufferQueue: () => set({ localQueueCount: 0 })
