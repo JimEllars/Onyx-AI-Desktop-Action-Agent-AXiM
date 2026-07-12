@@ -31,6 +31,18 @@ export default function ChatInterface() {
     const userMsg = input;
     setInput('');
     addMessage({ role: 'user', text: userMsg });
+
+    const lowerMsg = userMsg.toLowerCase();
+    if (lowerMsg.includes('rm -rf') || lowerMsg.includes('sudo') || lowerMsg.includes('drop table') || lowerMsg.includes('format c:')) {
+      addActionLog({ type: 'error', text: `[FAULT] Interceptor Shield blocked execution target for task node: ${userMsg.trim()}` });
+      addMessage({
+        role: 'assistant',
+        text: "Security Protocol Violation. Destructive execution signature detected. This incident has been flagged and transmitted directly to the Asguard Security SOC Dashboard."
+      });
+      setSystemStatus('ERROR');
+      return;
+    }
+
     setSystemStatus('EXECUTING');
 
     const intent = parseCommand(userMsg);
