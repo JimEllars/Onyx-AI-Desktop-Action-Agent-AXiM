@@ -2,9 +2,10 @@ import React, { useEffect } from 'react';
 import MainHUD from './components/layout/MainHUD';
 import BatchIngressZone from './components/admin/BatchIngressZone';
 import { useDesktopAgentStore } from './store/useDesktopAgentStore';
+import LoginGateway from './components/admin/LoginGateway';
 
 function App() {
-  const { currentView, updateTelemetry } = useDesktopAgentStore();
+  const { currentView, updateTelemetry, walletConnected } = useDesktopAgentStore();
 
   useEffect(() => {
     const interval = setInterval(updateTelemetry, 3000);
@@ -12,7 +13,7 @@ function App() {
   }, [updateTelemetry]);
   return (
     <div className="antialiased selection:bg-emerald-500/30">
-      {currentView === 'HUD' ? <MainHUD /> : <BatchIngressZone />}
+      {!walletConnected ? <LoginGateway /> : (currentView === 'HUD' ? <MainHUD /> : <BatchIngressZone />)}
     </div>
   );
 }
