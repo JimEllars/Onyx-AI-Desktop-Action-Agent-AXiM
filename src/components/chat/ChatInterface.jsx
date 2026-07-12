@@ -128,7 +128,7 @@ export default function ChatInterface() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED: Execute a security cache release pass to unlock workstation..." : "Issue physical action command, Sir..."}
+            placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED. Clear execution cache blocks to restore operations..." : "Issue physical action command, Sir..."}
             disabled={systemStatus === 'ERROR'}
             className={`w-full border rounded-xl py-4 pl-14 pr-14 text-sm outline-none transition-all font-mono ${
               systemStatus === 'ERROR'

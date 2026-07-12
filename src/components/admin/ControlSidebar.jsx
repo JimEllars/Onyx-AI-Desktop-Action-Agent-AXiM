@@ -21,6 +21,7 @@ export default function ControlSidebar() {
 
   const handleClearCache = () => {
     clearCacheBlocks();
+    addActionLog({ type: 'system', text: '[RESET] Volatile cache memory blocks de-allocated. Node execution lanes recycled successfully.' });
     addActionLog({ type: 'fault', text: '[SECURITY] Local out-of-band execution cache blocks purged securely' });
   };
 

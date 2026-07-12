@@ -52,6 +52,14 @@ export default function DropZone({ targetApplication }) {
       console.warn('[BROWSER_SIMULATION] Ingestion captured into virtual local loop', error);
       incrementLocalBufferQueue();
       addActionLog({ type: 'task', text: `Batch ingestion detected (fallback): [${targetApplication}]` });
+
+      if (targetApplication === 'green_machine') {
+        addActionLog({ type: 'system', text: '[ENRICHMENT] Semantic parse routed affiliate/ledger records to Green Machine financial registry' });
+      } else if (targetApplication === 'nexus_crm') {
+        addActionLog({ type: 'system', text: '[ENRICHMENT] Semantic parse routed B2B contact data blocks to Nexus CRM sheets' });
+      } else if (targetApplication === 'asguard_soc') {
+        addActionLog({ type: 'system', text: '[ENRICHMENT] Semantic parse routed incident anomaly trace logs to Asguard WAF threat feed maps' });
+      }
     }
   };
 
