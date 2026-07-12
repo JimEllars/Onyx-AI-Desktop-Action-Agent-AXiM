@@ -8,9 +8,10 @@ function App() {
   const { currentView, updateTelemetry, walletConnected } = useDesktopAgentStore();
 
   useEffect(() => {
+    if (!walletConnected) return;
     const interval = setInterval(updateTelemetry, 3000);
     return () => clearInterval(interval);
-  }, [updateTelemetry]);
+  }, [updateTelemetry, walletConnected]);
   return (
     <div className="antialiased selection:bg-emerald-500/30">
       {!walletConnected ? <LoginGateway /> : (currentView === 'HUD' ? <MainHUD /> : <BatchIngressZone />)}
