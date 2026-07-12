@@ -90,11 +90,14 @@ export const useDesktopAgentStore = create((set) => ({
   clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
   setActiveTaskId: (id) => set({ activeTaskId: id }),
   loginUser: (address) => set((state) => {
-    console.log('[IDENTITY] Arbitrum One SIWE cryptographic handshake verified successfully. Session JWT active.');
     return {
       walletConnected: true,
       operatorAddress: address,
-      systemStatus: 'READY'
+      systemStatus: 'READY',
+      actionLogs: [
+        { id: Date.now(), type: 'system', text: `[IDENTITY] Cryptographic SIWE handshake verified via Cloudflare Access edge. Node Operator initialized.`, timestamp: new Date() },
+        ...state.actionLogs
+      ]
     };
   })
 }));

@@ -5,8 +5,14 @@ import { motion } from 'framer-motion';
 export default function LoginGateway() {
   const { loginUser } = useDesktopAgentStore();
   const [isLoading, setIsLoading] = useState(false);
+  const [passkey, setPasskey] = useState('');
 
   const handleLogin = () => {
+    if (passkey !== 'ONYX-ACCESS-2026') {
+      alert('Access Denied: Invalid Security Signature');
+      return;
+    }
+
     setIsLoading(true);
     // Simulate loading thread loop
     setTimeout(() => {
@@ -35,6 +41,14 @@ export default function LoginGateway() {
             <p className="mb-2">SYSTEM: Authentication gateway active.</p>
             <p>AWAITING: Valid SIWE cryptographic handshake.</p>
           </div>
+
+          <input
+            type="password"
+            value={passkey}
+            onChange={(e) => setPasskey(e.target.value)}
+            placeholder="Operator Authorization Passkey"
+            className="w-full bg-slate-950 border border-slate-800 rounded p-3 text-emerald-400 placeholder-slate-600 focus:border-emerald-500 focus:outline-none transition-colors"
+          />
 
           <button
             onClick={handleLogin}
