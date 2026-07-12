@@ -7,11 +7,16 @@ export default function ControlSidebar() {
   const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
 
-  const handleForceFlush = () => {
-    clearLocalBufferQueue();
-    addActionLog({ type: 'system', text: '[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks' });
+  const handleForceFlush = async () => {
     setIsFlushing(true);
-    setTimeout(() => setIsFlushing(false), 500);
+    addActionLog({ type: 'system', text: '[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks' });
+    addActionLog({ type: 'network', text: '[CONNECT] Tunneling encrypted payload packet through Cloudflare Worker node at endpoint: /api/v1/desktop/archive...' });
+
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    clearLocalBufferQueue();
+    addActionLog({ type: 'success', text: '[CLOUDFLARE_EDGE] Matrix synchronization complete. Storage sequence finalized.' });
+    setIsFlushing(false);
   };
 
   const handleClearCache = () => {

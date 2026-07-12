@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function TelemetryChart() {
   const { cpuHistory, memoryHistory, latencyHistory } = useDesktopAgentStore();
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (cpuHistory.length === 0 && memoryHistory.length === 0 && latencyHistory.length === 0) {
+      if (chartRef.current) {
+        const chartInstance = chartRef.current.getEchartsInstance();
+        chartInstance.clear();
+      }
+    }
+  }, [cpuHistory, memoryHistory, latencyHistory]);
 
   const option = {
     backgroundColor: 'transparent',
@@ -103,7 +113,7 @@ export default function TelemetryChart() {
 
   return (
     <div className="h-32 w-full">
-      <ReactECharts option={option} style={{ height: '100%', width: '100%' }} />
+      <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />
     </div>
   );
 }
