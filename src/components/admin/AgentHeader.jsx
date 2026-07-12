@@ -21,7 +21,7 @@ export default function AgentHeader() {
                 <span className="text-[9px] text-emerald-400 font-bold tracking-widest uppercase drop-shadow-[0_0_2px_rgba(16,185,129,0.8)]">System Status: {systemStatus}</span>
               </>
             )}
-            {systemStatus === 'PROCESSING' && (
+            {systemStatus === 'EXECUTING' && (
               <>
                 <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse shadow-[0_0_5px_#06b6d4]"></span>
                 <span className="text-[9px] text-cyan-400 font-bold tracking-widest uppercase animate-pulse">System Status: {systemStatus}</span>
@@ -33,7 +33,7 @@ export default function AgentHeader() {
                 <span className="text-[9px] text-red-500 font-bold tracking-widest uppercase">System Status: {systemStatus}</span>
               </>
             )}
-            {!['READY', 'PROCESSING', 'ERROR'].includes(systemStatus) && (
+            {!['READY', 'EXECUTING', 'ERROR'].includes(systemStatus) && (
               <>
                 <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
                 <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase">System Status: {systemStatus}</span>
@@ -71,7 +71,7 @@ export default function AgentHeader() {
           </div>
           <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px]">
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">THREATS</span>
-            <span className="text-[11px] text-emerald-400 font-bold">{threatCount}</span>
+            <span className={`text-[11px] font-bold ${threatCount > 0 ? 'text-red-500 animate-pulse text-shadow-glow' : 'text-emerald-400'}`}>{threatCount}</span>
           </div>
         </div>
       </div>
