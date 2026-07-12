@@ -3,9 +3,9 @@ import { create } from 'zustand';
 export const useDesktopAgentStore = create((set) => ({
   walletConnected: true,
   currentView: 'HUD',
-  cpuHistory: Array(20).fill(12),
-  memoryHistory: Array(20).fill(142),
-  latencyHistory: Array(20).fill(24),
+  cpuHistory: [],
+  memoryHistory: [],
+  latencyHistory: [],
   operatorAddress: "0x742d...444",
   activeTaskId: null,
   localQueueCount: 0,
@@ -43,7 +43,7 @@ export const useDesktopAgentStore = create((set) => ({
     };
   }),
 
-  setCurrentView: (view) => set({ currentView: view }),
+  setView: (viewName) => set({ currentView: viewName }),
   setSystemStatus: (status) => set({ systemStatus: status }),
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
   clearLocalBufferQueue: () => set({ localQueueCount: 0 })

@@ -36,7 +36,7 @@ export default function DropZone({ targetApplication }) {
       await invoke('execute_batch_upload', { payload: JSON.stringify({ data: droppedText, target_app: targetApplication }) });
       addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}]` });
     } catch (error) {
-      console.warn('[CONTAINER_FALLBACK] Ingestion routed to localized virtual buffer queue', error);
+      console.warn('[BROWSER_SIMULATION] Ingestion captured into virtual local loop', error);
       incrementLocalBufferQueue();
       addActionLog({ type: 'task', text: `Batch ingestion detected (fallback): [${targetApplication}]` });
     }
