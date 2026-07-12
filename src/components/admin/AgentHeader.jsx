@@ -4,7 +4,7 @@ import { FiShield, FiDatabase, FiLock } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localQueueCount, operatorAddress, currentView, setView, systemStatus, cfCacheStatus, cfRayId } = useDesktopAgentStore();
+  const { localQueueCount, operatorAddress, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -49,7 +49,7 @@ export default function AgentHeader() {
           </div>
           <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px]">
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">THREATS</span>
-            <span className="text-[11px] text-emerald-400 font-bold">0</span>
+            <span className="text-[11px] text-emerald-400 font-bold">{threatCount}</span>
           </div>
         </div>
       </div>

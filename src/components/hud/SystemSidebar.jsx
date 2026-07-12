@@ -1,17 +1,13 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { FiCpu, FiActivity, FiGlobe, FiLayers } from 'react-icons/fi';
+import { FiCpu, FiGlobe, FiLayers } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const { cpuLoad, memoryUsage, networkLatencyMs, updateTelemetry, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
+  const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId } = useDesktopAgentStore();
 
-  useEffect(() => {
-    const interval = setInterval(updateTelemetry, 3000);
-    return () => clearInterval(interval);
-  }, []);
 
   const stats = [
     { label: 'CPU LOAD', val: `${cpuLoad.toFixed(1)}%`, icon: FiCpu, color: 'text-emerald-400' },

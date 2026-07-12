@@ -9,6 +9,7 @@ export const useDesktopAgentStore = create((set) => ({
   operatorAddress: "0x742d...444",
   activeTaskId: null,
   localQueueCount: 0,
+  threatCount: 0,
   networkLatencyMs: 24,
   systemStatus: 'READY', // READY, EXECUTING, ERROR, AUTHENTICATING
   cloudflareEdgeNode: 'DFW-Core',
@@ -27,9 +28,17 @@ export const useDesktopAgentStore = create((set) => ({
     messages: [...state.messages, { ...msg, id: Date.now() }] 
   })),
 
-  addActionLog: (log) => set((state) => ({ 
-    actionLogs: [{ ...log, id: Date.now(), timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
-  })),
+  addActionLog: (log) => set((state) => {
+    let newThreatCount = state.threatCount;
+    const text = log.text.toLowerCase();
+    if (text.includes('[error]') || text.includes('[fault]') || text.includes('exploit')) {
+      newThreatCount += 1;
+    }
+    return {
+      threatCount: newThreatCount,
+      actionLogs: [{ ...log, id: Date.now(), timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
+    };
+  }),
 
   updateCloudflareMetrics: () => set((state) => {
     const statuses = ['HIT', 'MISS', 'DYNAMIC'];
@@ -77,5 +86,6 @@ export const useDesktopAgentStore = create((set) => ({
   setView: (viewName) => set({ currentView: viewName }),
   setSystemStatus: (status) => set({ systemStatus: status }),
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
-  clearLocalBufferQueue: () => set({ localQueueCount: 0 })
+  clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
+  setActiveTaskId: (id) => set({ activeTaskId: id })
 }));

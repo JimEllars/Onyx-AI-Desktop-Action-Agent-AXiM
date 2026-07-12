@@ -7,7 +7,21 @@ export default function TelemetryChart() {
 
   const option = {
     backgroundColor: 'transparent',
-    tooltip: { show: true, trigger: 'axis' },
+    tooltip: {
+      show: true,
+      trigger: 'axis',
+      formatter: (params) => {
+        let result = `${params[0].name || ''}<br/>`;
+        params.forEach(param => {
+          let suffix = '';
+          if (param.seriesName === 'CPU Core Use') suffix = '%';
+          else if (param.seriesName === 'Physical Memory Delta') suffix = ' MB';
+          else if (param.seriesName === 'Cloudflare Edge Latency') suffix = ' ms';
+          result += `${param.marker} ${param.seriesName}: ${Math.round(param.value)}${suffix}<br/>`;
+        });
+        return result;
+      }
+    },
     legend: {
       show: true,
       textStyle: { color: '#94a3b8', fontSize: 9 },
