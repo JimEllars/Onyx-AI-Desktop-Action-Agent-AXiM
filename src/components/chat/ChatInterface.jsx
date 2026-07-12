@@ -7,7 +7,7 @@ import NeuralInterface from '../hud/NeuralInterface';
 
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, setSystemStatus, setActiveTaskId } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId } = useDesktopAgentStore();
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -114,7 +114,12 @@ export default function ChatInterface() {
         </AnimatePresence>
       </div>
 
-      <form onSubmit={handleSend} className="p-8 bg-slate-900/60 border-t border-slate-800 backdrop-blur-xl">
+      <form onSubmit={handleSend} className="p-8 bg-slate-900/60 border-t border-slate-800 backdrop-blur-xl flex flex-col gap-4">
+        {systemStatus === 'ERROR' && (
+          <div className="bg-red-950/40 border border-red-900/50 rounded-lg p-3 text-red-400 text-xs font-mono">
+            [SECURITY NOTICE] Out-of-band terminal loop blocked by Asguard Interceptor Shield. Review the action ledger console to clear hardware boundaries.
+          </div>
+        )}
         <div className="relative flex items-center">
           <div className="absolute left-4 w-6 h-6 rounded-full border border-slate-700 flex items-center justify-center">
             <SafeIcon icon={FiCommand} className="text-[10px] text-slate-500" />
@@ -123,12 +128,22 @@ export default function ChatInterface() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Issue physical action command, Sir..."
-            className="w-full bg-slate-950/50 border border-slate-800 rounded-xl py-4 pl-14 pr-14 text-sm outline-none focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 transition-all text-emerald-100 placeholder:text-slate-600 font-mono"
+            placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED: Execute a security cache release pass to unlock workstation..." : "Issue physical action command, Sir..."}
+            disabled={systemStatus === 'ERROR'}
+            className={`w-full border rounded-xl py-4 pl-14 pr-14 text-sm outline-none transition-all font-mono ${
+              systemStatus === 'ERROR'
+                ? 'bg-red-950/20 border-red-900/40 text-red-300 focus:ring-0 placeholder:text-red-800/50'
+                : 'bg-slate-950/50 border-slate-800 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 text-emerald-100 placeholder:text-slate-600'
+            }`}
           />
           <button 
             type="submit" 
-            className="absolute right-4 p-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-emerald-500 transition-all hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+            disabled={systemStatus === 'ERROR'}
+            className={`absolute right-4 p-2 border rounded-lg transition-all ${
+              systemStatus === 'ERROR'
+                ? 'bg-red-900/10 border-red-900/20 text-red-800/50 cursor-not-allowed'
+                : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 text-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+            }`}
           >
             <SafeIcon icon={FiSend} />
           </button>
