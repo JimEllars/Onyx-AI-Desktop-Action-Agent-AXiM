@@ -22,6 +22,9 @@ export default function ActionConsole({ className = "" }) {
             // Use simple regex or includes to find error syntax
             const isError = log.text?.includes('[ERROR]');
             const isFault = log.text?.includes('[FAULT]');
+            const isIdentity = log.text?.includes('[IDENTITY]');
+            const isConnect = log.text?.includes('[CONNECT]') || log.text?.includes('[CLOUDFLARE_EDGE]');
+            const isRecovery = log.text?.includes('[RECOVERY]') || log.text?.includes('[RESET]');
             return (
               <motion.div
                 key={log.id}
@@ -33,6 +36,9 @@ export default function ActionConsole({ className = "" }) {
                   {log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
                 <span className={`${
+                  isIdentity ? 'text-amber-400 tracking-wide font-bold' :
+                  isConnect ? 'text-purple-400' :
+                  isRecovery ? 'text-cyan-400 font-bold' :
                   isError ? 'text-red-400' :
                   isFault ? 'text-amber-500' :
                   log.type === 'action' ? 'text-cyan-400' :
