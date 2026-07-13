@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
 import SafeIcon from '../../common/SafeIcon';
-import { FiDownloadCloud, FiFileText } from 'react-icons/fi';
+import { FiDownloadCloud, FiFileText, FiAlertTriangle } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function DropZone({ targetApplication }) {
@@ -76,9 +76,9 @@ export default function DropZone({ targetApplication }) {
       onDrop={systemStatus === 'ERROR' ? (e) => { e.preventDefault(); setIsActiveDragging(false); } : handleDrop}
       animate={{ 
         borderColor: systemStatus === 'ERROR' ? '#ef4444' : (isDragging ? '#10b981' : '#1e293b'),
-        backgroundColor: isDragging && systemStatus !== 'ERROR' ? 'rgba(16,185,129,0.05)' : 'transparent'
+        backgroundColor: systemStatus === 'ERROR' ? 'rgba(127, 29, 29, 0.2)' : (isDragging ? 'rgba(16,185,129,0.05)' : 'transparent')
       }}
-      className={`flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all ${systemStatus === 'ERROR' ? 'cursor-not-allowed opacity-50' : 'cursor-crosshair'} group`}
+      className={`flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all ${systemStatus === 'ERROR' ? 'cursor-not-allowed bg-red-950/20' : 'cursor-crosshair'} group`}
     >
       <div className="flex flex-col items-center gap-3 pointer-events-none">
         {isProcessing ? (
@@ -91,7 +91,7 @@ export default function DropZone({ targetApplication }) {
         ) : (
           <>
             <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-              <SafeIcon icon={FiFileText} className={`transition-colors ${systemStatus === 'ERROR' ? 'text-red-500' : 'text-slate-600 group-hover:text-emerald-500'}`} />
+              <SafeIcon icon={systemStatus === 'ERROR' ? FiAlertTriangle : FiFileText} className={`transition-colors ${systemStatus === 'ERROR' ? 'text-red-500 animate-pulse' : 'text-slate-600 group-hover:text-emerald-500'}`} />
             </div>
             <div className="text-center">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{systemStatus === 'ERROR' ? 'NODE WORKLOAD SUSPENDED' : 'Drop Command Frame'}</p>
