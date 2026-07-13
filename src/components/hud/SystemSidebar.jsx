@@ -10,9 +10,9 @@ export default function SystemSidebar() {
 
 
   const stats = [
-    { label: 'CPU LOAD', val: `${cpuLoad.toFixed(1)}%`, icon: FiCpu, color: 'text-emerald-400' },
-    { label: 'MEM VOL', val: `${memoryUsage.toFixed(0)} MB`, icon: FiLayers, color: 'text-cyan-400' },
-    { label: 'LATENCY', val: `${networkLatencyMs.toFixed(0)} ms`, icon: FiGlobe, color: 'text-amber-400' }
+    { label: 'CPU LOAD', val: `${cpuLoad.toFixed(1)}%`, width: `${cpuLoad}%`, icon: FiCpu, color: 'text-emerald-400' },
+    { label: 'MEM VOL', val: `${memoryUsage.toFixed(0)} MB`, width: `${(memoryUsage / 500) * 100}%`, icon: FiLayers, color: 'text-cyan-400' },
+    { label: 'LATENCY', val: `${networkLatencyMs.toFixed(0)} ms`, width: `${(networkLatencyMs / 100) * 100}%`, icon: FiGlobe, color: 'text-amber-400' }
   ];
 
   return (
@@ -38,7 +38,7 @@ export default function SystemSidebar() {
             </div>
             <div className="h-0.5 bg-slate-800/50 rounded-full overflow-hidden">
               <motion.div 
-                animate={{ width: stat.val.includes('%') ? stat.val : '40%' }}
+                animate={{ width: stat.width }}
                 className={`h-full ${stat.color.replace('text', 'bg')} opacity-50`}
               />
             </div>
