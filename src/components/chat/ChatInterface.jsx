@@ -130,8 +130,8 @@ export default function ChatInterface() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED. Clear execution cache blocks to restore operations..." : "Issue physical action command, Sir..."}
-            disabled={systemStatus === 'ERROR'}
+            placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED. Clear execution cache blocks to restore operations..." : systemStatus === 'EXECUTING' ? "Swarm execution sequence in progress... Awaiting edge confirmation" : "Issue physical action command, Sir..."}
+            disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
             className={`w-full border rounded-xl py-4 pl-14 pr-14 text-sm outline-none transition-all font-mono ${
               systemStatus === 'ERROR'
                 ? 'bg-red-950/20 border-red-900/40 text-red-300 focus:ring-0 placeholder:text-red-800/50'
@@ -140,7 +140,7 @@ export default function ChatInterface() {
           />
           <button 
             type="submit" 
-            disabled={systemStatus === 'ERROR'}
+            disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
             className={`absolute right-4 p-2 border rounded-lg transition-all ${
               systemStatus === 'ERROR'
                 ? 'bg-red-900/10 border-red-900/20 text-red-800/50 cursor-not-allowed'

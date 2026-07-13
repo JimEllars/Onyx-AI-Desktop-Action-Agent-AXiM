@@ -76,11 +76,11 @@ export default function DropZone({ targetApplication }) {
     >
       <div className="flex flex-col items-center gap-3 pointer-events-none">
         <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
-          <SafeIcon icon={FiFileText} className="text-slate-600 group-hover:text-emerald-500 transition-colors" />
+          <SafeIcon icon={FiFileText} className={`transition-colors ${systemStatus === 'ERROR' ? 'text-red-500' : 'text-slate-600 group-hover:text-emerald-500'}`} />
         </div>
         <div className="text-center">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Drop Command Frame</p>
-          <p className="text-[8px] text-slate-600 mt-1">JSON / CSV / RAW</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{systemStatus === 'ERROR' ? 'NODE WORKLOAD SUSPENDED' : 'Drop Command Frame'}</p>
+          <p className="text-[8px] text-slate-600 mt-1">{systemStatus === 'ERROR' ? 'Clear local out-of-band cache blocks to restore ingestion channels' : 'JSON / CSV / RAW'}</p>
         </div>
       </div>
     </motion.div>

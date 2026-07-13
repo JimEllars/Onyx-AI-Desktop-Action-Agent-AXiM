@@ -27,6 +27,7 @@ export default function ActionConsole({ className = "" }) {
             const isRecovery = log.text?.includes('[RECOVERY]') || log.text?.includes('[RESET]');
             const isAsguardShield = log.text?.includes('[ASGUARD_SHIELD]');
             const isEnrichment = log.text?.includes('[ENRICHMENT]');
+            const isHITL = log.text?.includes('[HITL]');
             return (
               <motion.div
                 key={log.id}
@@ -38,6 +39,7 @@ export default function ActionConsole({ className = "" }) {
                   {log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
                 <span className={`${
+                  isHITL ? 'text-fuchsia-400 font-semibold tracking-wider' :
                   isAsguardShield ? 'text-red-400 font-bold tracking-wide animate-pulse' :
                   isEnrichment ? 'text-emerald-400 tracking-wide font-medium' :
                   isIdentity ? 'text-amber-400 tracking-wide font-bold' :
