@@ -74,6 +74,16 @@ export const useDesktopAgentStore = create((set) => ({
     const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
     const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
 
+    let newPendingApprovals = state.pendingApprovals;
+    if (state.systemStatus === 'READY' && state.pendingApprovals.length < 3 && Math.random() > 0.9) {
+      newPendingApprovals = [...state.pendingApprovals, {
+        id: 'MCP-SIM-' + Math.floor(Math.random() * 10000),
+        agent: 'Ecosystem Bridge Node',
+        action: 'Secure Token Rotation',
+        details: 'Automated API token refresh cycle initiated by secure Cloudflare edge crons.'
+      }];
+    }
+
     return {
       cloudflareEdgeNode: newEdge,
       cpuLoad: newCpu,
@@ -84,6 +94,7 @@ export const useDesktopAgentStore = create((set) => ({
       latencyHistory: [...state.latencyHistory, newLatency].slice(-20),
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
+      pendingApprovals: newPendingApprovals,
     };
   }),
 
@@ -95,7 +106,8 @@ export const useDesktopAgentStore = create((set) => ({
     cpuLoad: 0,
     memoryUsage: 0,
     networkLatencyMs: 0,
-    systemStatus: 'READY'
+    systemStatus: 'READY',
+    pendingApprovals: []
   }),
 
   setView: (viewName) => set({ currentView: viewName }),

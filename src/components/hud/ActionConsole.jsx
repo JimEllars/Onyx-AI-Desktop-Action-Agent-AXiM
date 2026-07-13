@@ -14,7 +14,7 @@ export default function ActionConsole({ className = "" }) {
     <div className={`bg-slate-900/40 border border-slate-800 rounded-xl p-6 flex flex-col min-h-0 backdrop-blur-sm ${className}`}>
       <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-2 mb-4">Action Ledger</h3>
       {/* Setting flex-col-reverse so that standard prepend order makes items flow bottom up if needed, or just let it scroll normally */}
-      <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col">
+      <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col max-h-[140px] min-h-[100px] pr-1">
         <div className="mt-auto flex flex-col space-y-3">
         <AnimatePresence initial={false}>
           {/* actionLogs has the newest log at index 0. We want the oldest at the top and newest at the bottom if we scroll to the bottom. Let's reverse it visually or reverse the array. Reversing the array is fine. */}
@@ -95,6 +95,11 @@ export default function ActionConsole({ className = "" }) {
             </motion.div>
           ))}
         </AnimatePresence>
+        {pendingApprovals.length === 0 && (
+          <div className="bg-emerald-950/10 border border-emerald-900/30 text-emerald-400 text-[10px] font-bold p-3 rounded tracking-wide text-center uppercase shadow-inner mt-4 mb-2">
+            [NOMINAL] All pending agent workflows approved. Swarm synchronized.
+          </div>
+        )}
         <div ref={logsEndRef} />
         </div>
       </div>
