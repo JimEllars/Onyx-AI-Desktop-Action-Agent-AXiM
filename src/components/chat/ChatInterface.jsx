@@ -9,12 +9,20 @@ export default function ChatInterface() {
   const [input, setInput] = useState('');
   const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics } = useDesktopAgentStore();
   const scrollRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+
+  useEffect(() => {
+    if (systemStatus === 'READY') {
+      inputRef.current?.focus();
+    }
+  }, [systemStatus]);
 
   const parseCommand = (input) => {
     const text = input.toLowerCase();
@@ -145,6 +153,7 @@ export default function ChatInterface() {
             <SafeIcon icon={FiCommand} className="text-[10px] text-slate-500" />
           </div>
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}

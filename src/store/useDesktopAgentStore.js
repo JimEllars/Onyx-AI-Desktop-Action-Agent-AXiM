@@ -55,6 +55,17 @@ export const useDesktopAgentStore = create((set) => ({
     const statuses = ['HIT', 'MISS', 'DYNAMIC'];
     const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
     const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+
+    let currentActionLogs = state.actionLogs;
+    if (newStatus === 'MISS' || newStatus === 'DYNAMIC') {
+      const newLog = {
+        id: Date.now(),
+        type: 'network',
+        text: `[CLOUDFLARE_EDGE] Cache state: ${newStatus}. Re-routing proxy re-validation down-tier via ray id: [${newRayId.substring(0, 8)}]...`,
+        timestamp: new Date()
+      };
+      currentActionLogs = [newLog, ...state.actionLogs].slice(0, 50);
+    }
     return {
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
@@ -73,6 +84,17 @@ export const useDesktopAgentStore = create((set) => ({
     const statuses = ['HIT', 'MISS', 'DYNAMIC'];
     const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
     const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+
+    let currentActionLogs = state.actionLogs;
+    if (newStatus === 'MISS' || newStatus === 'DYNAMIC') {
+      const newLog = {
+        id: Date.now(),
+        type: 'network',
+        text: `[CLOUDFLARE_EDGE] Cache state: ${newStatus}. Re-routing proxy re-validation down-tier via ray id: [${newRayId.substring(0, 8)}]...`,
+        timestamp: new Date()
+      };
+      currentActionLogs = [newLog, ...state.actionLogs].slice(0, 50);
+    }
 
     let newPendingApprovals = state.pendingApprovals;
     if (state.systemStatus === 'READY' && state.pendingApprovals.length < 3 && Math.random() > 0.9) {
@@ -95,6 +117,7 @@ export const useDesktopAgentStore = create((set) => ({
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
       pendingApprovals: newPendingApprovals,
+      actionLogs: currentActionLogs
     };
   }),
 
@@ -103,7 +126,7 @@ export const useDesktopAgentStore = create((set) => ({
     memoryHistory: [],
     latencyHistory: [],
     localQueueCount: 0,
-    threatCount: 0,
+    threatCount: 0, // Reset anomalous indicators during disaster recovery flushes
     cpuLoad: 0,
     memoryUsage: 0,
     networkLatencyMs: 0,
