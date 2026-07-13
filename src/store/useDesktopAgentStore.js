@@ -7,6 +7,7 @@ export const useDesktopAgentStore = create((set) => ({
   memoryHistory: [],
   latencyHistory: [],
   operatorAddress: "0x742d...444",
+  operatorRole: null,
   activeTaskId: null,
   localQueueCount: 0,
   threatCount: 0,
@@ -139,15 +140,14 @@ export const useDesktopAgentStore = create((set) => ({
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
   clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
   setActiveTaskId: (id) => set({ activeTaskId: id }),
-  loginUser: (address) => set((state) => {
-    return {
-      walletConnected: true,
-      operatorAddress: address,
-      systemStatus: 'READY',
-      actionLogs: [
-        { id: Date.now(), type: 'system', text: `[IDENTITY] Cryptographic SIWE handshake verified via Cloudflare Access edge. Node Operator initialized.`, timestamp: new Date() },
-        ...state.actionLogs
-      ]
-    };
-  })
+  loginUser: (address) => set((state) => ({
+    walletConnected: true,
+    operatorAddress: address,
+    operatorRole: "Certified Engineer (SBT)",
+    systemStatus: 'READY',
+    actionLogs: [
+      { id: Date.now(), type: 'system', text: `[IDENTITY] Cryptographic SIWE handshake verified via Cloudflare Access edge. Role claims mapped: Certified Engineer (SBT).`, timestamp: new Date() },
+      ...state.actionLogs
+    ]
+  }))
 }));

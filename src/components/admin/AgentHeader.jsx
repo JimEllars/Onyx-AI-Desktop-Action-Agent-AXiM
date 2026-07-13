@@ -1,10 +1,11 @@
 import React from 'react';
 import SafeIcon from '../../common/SafeIcon';
-import { FiShield, FiDatabase, FiLock } from 'react-icons/fi';
+import { FiShield, FiDatabase, FiLock, FiAward } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localQueueCount, operatorAddress, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount } = useDesktopAgentStore();
+  const { localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -54,6 +55,19 @@ export default function AgentHeader() {
             <SafeIcon icon={FiLock} className="text-[8px]" />
             {operatorAddress}
           </div>
+          <AnimatePresence>
+            {operatorRole && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                className="mt-1 flex items-center gap-1.5 px-2 py-0.5 bg-teal-950/30 border border-teal-500/30 rounded text-[8px] text-teal-400 font-bold tracking-widest uppercase"
+              >
+                {operatorRole}
+                <SafeIcon icon={FiAward} className="text-teal-500" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         <div className="flex gap-2">
