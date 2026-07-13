@@ -103,6 +103,7 @@ export const useDesktopAgentStore = create((set) => ({
     memoryHistory: [],
     latencyHistory: [],
     localQueueCount: 0,
+    threatCount: 0,
     cpuLoad: 0,
     memoryUsage: 0,
     networkLatencyMs: 0,
