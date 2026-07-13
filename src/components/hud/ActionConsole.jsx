@@ -4,6 +4,13 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ActionConsole({ className = "" }) {
   const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog } = useDesktopAgentStore();
+  const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
+
+  const toggleMcpExpansion = (id) => {
+    setExpandedMcpIds(prev =>
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
   const logsEndRef = useRef(null);
 
   useEffect(() => {
@@ -73,6 +80,34 @@ export default function ActionConsole({ className = "" }) {
                 <span className="text-emerald-400">{approval.action}</span>
                 <span className="text-slate-500">DETAILS:</span>
                 <span className="leading-relaxed">{approval.details}</span>
+              </div>
+              <div className="mt-1">
+                <button
+                  onClick={() => toggleMcpExpansion(approval.id)}
+                  className="text-[9px] text-slate-500 hover:text-slate-300 underline underline-offset-2 transition-colors font-mono"
+                >
+                  {expandedMcpIds.includes(approval.id) ? '[-]' : '[+]'} View Raw Schema
+                </button>
+                <AnimatePresence>
+                  {expandedMcpIds.includes(approval.id) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <pre className="mt-2 bg-slate-950/80 border border-slate-800 p-2 rounded text-[8px] text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap">
+{JSON.stringify({
+  "tool": "onyx_mcp_system_patch",
+  "execution_parameters": {
+    "idempotency_key": "lock_7112026_delta",
+    "env_overrides": { "target_node": "win-device-0320a6" }
+  }
+}, null, 2)}
+                      </pre>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
               <div className="flex gap-2 mt-1">
                 <button

@@ -112,7 +112,17 @@ export default function ChatInterface() {
                     OnyX Mk3
                   </div>
                 )}
-                {msg.text}
+                {msg.role === 'assistant' && msg.text.includes("browser environment") && (
+                  <div className="mb-2 inline-block text-cyan-400 text-[9px] font-bold tracking-widest border border-cyan-800 bg-cyan-950/40 px-2 py-0.5 rounded">
+                    [VECTOR_ROUTE // OS_BROWSER_OPEN]
+                  </div>
+                )}
+                {msg.role === 'assistant' && msg.text.includes("PowerShell") && (
+                  <div className="mb-2 inline-block text-amber-500 text-[9px] font-bold tracking-widest border border-amber-800 bg-amber-950/40 px-2 py-0.5 rounded">
+                    [TERMINAL_EXEC // CLI_EXECUTE_SECURE]
+                  </div>
+                )}
+                <div className={msg.role === 'assistant' && (msg.text.includes("browser environment") || msg.text.includes("PowerShell")) ? "block" : ""}>{msg.text}</div>
               </div>
             </motion.div>
           ))}
