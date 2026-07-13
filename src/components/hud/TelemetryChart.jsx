@@ -15,6 +15,15 @@ export default function TelemetryChart() {
     }
   }, [cpuHistory, memoryHistory, latencyHistory]);
 
+  useEffect(() => {
+    const handleResize = () => {
+      chartRef.current?.getEchartsInstance().resize();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+
   const option = {
     backgroundColor: 'transparent',
     tooltip: {

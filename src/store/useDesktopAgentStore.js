@@ -21,14 +21,14 @@ export const useDesktopAgentStore = create((set) => ({
     { id: 'MCP-HITL-7112', agent: 'Pulse Triage Swarm', action: 'Database Subscription Patch', details: 'Modify database row parameter for Affiliate Account #321: adjust subscription_fee compute debt value from 120 to 0.' }
   ],
   messages: [
-    { id: 1, role: 'assistant', text: 'OnyX Mk3 Online. Vector systems initialized. Awaiting architectural commands, Sir.' }
+    { id: 1, role: 'assistant', text: 'OnyX Mk3 Online. Vector systems initialized. Awaiting architectural commands, Sir.', timestamp: new Date() }
   ],
   actionLogs: [
     { id: 1, type: 'system', text: 'Kernel loaded. Arbitrum SIWE handshake complete.', timestamp: new Date() }
   ],
 
   addMessage: (msg) => set((state) => ({ 
-    messages: [...state.messages, { ...msg, id: Date.now() }] 
+    messages: [...state.messages, { ...msg, id: Date.now(), timestamp: new Date() }]
   })),
 
   addActionLog: (log) => set((state) => {
