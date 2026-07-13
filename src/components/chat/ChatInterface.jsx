@@ -56,9 +56,10 @@ export default function ChatInterface() {
 
     setTimeout(() => {
       addActionLog({ type: 'task', text: `Intent Identified: ${intent}` });
+      addActionLog({ type: 'action', text: `[EXECUTE] Native Bridge dispatching instruction matrix for intent: ${intent}...` });
       
       setTimeout(() => {
-        addActionLog({ type: 'action', text: `Native Bridge executing ${intent}...` });
+        addActionLog({ type: 'system', text: `[SUCCESS] Swarm execution sequence finalized down-tier. Telemetry logs transmitted.` });
         
         let response = "Instruction received. I've initiated the physical action sequence. Hardware telemetry remains stable.";
         if (intent === 'OS_BROWSER_OPEN') response = "Opening secure browser environment. Redirecting proxy through AXiM WAF.";
