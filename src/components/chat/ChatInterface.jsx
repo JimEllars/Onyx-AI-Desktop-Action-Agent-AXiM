@@ -30,6 +30,8 @@ export default function ChatInterface() {
 
     updateCloudflareMetrics();
 
+    addActionLog({ type: 'network', text: `[CONNECT] Routing instruction packet through Cloudflare edge worker tunnel at ray: [${useDesktopAgentStore.getState().cfRayId.substring(0, 8)}...]` });
+
     const userMsg = input;
     setInput('');
     addMessage({ role: 'user', text: userMsg });
@@ -117,6 +119,11 @@ export default function ChatInterface() {
       </div>
 
       <form onSubmit={handleSend} className="p-8 bg-slate-900/60 border-t border-slate-800 backdrop-blur-xl flex flex-col gap-4">
+        {systemStatus === 'EXECUTING' && (
+          <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-lg p-3 text-cyan-400 text-xs font-mono animate-pulse">
+            [WORKFLOW_EMULATION] Spawned PowerShell child-process. Monitoring native container stream vectors via secure edge-bridge...
+          </div>
+        )}
         {systemStatus === 'ERROR' && (
           <div className="bg-red-950/40 border border-red-900/50 rounded-lg p-3 text-red-400 text-xs font-mono">
             [SECURITY NOTICE] Out-of-band terminal loop blocked by Asguard Interceptor Shield. Review the action ledger console to clear hardware boundaries.

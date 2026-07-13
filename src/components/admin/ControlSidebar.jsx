@@ -4,7 +4,7 @@ import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus } = useDesktopAgentStore();
+  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
 
   const handleForceFlush = async () => {
@@ -83,6 +83,14 @@ export default function ControlSidebar() {
           <div className="flex justify-between text-slate-500">
             <span>Active Task:</span>
             <span className="text-purple-400">{activeTaskId || 'None'}</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Threat Vectors:</span>
+            <span className={threatCount > 0 ? "text-red-500" : "text-slate-500"}>{threatCount}</span>
+          </div>
+          <div className="flex justify-between text-slate-500">
+            <span>Edge Cache Status:</span>
+            <span className={cfCacheStatus === 'HIT' ? "text-emerald-400" : cfCacheStatus === 'MISS' ? "text-red-400" : "text-amber-400"}>{cfCacheStatus}</span>
           </div>
         </div>
       </div>
