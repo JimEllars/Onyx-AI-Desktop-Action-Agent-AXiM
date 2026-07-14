@@ -102,8 +102,9 @@ export default function ActionConsole({ className = "" }) {
 {JSON.stringify({
   "tool": "onyx_mcp_system_patch",
   "execution_parameters": {
-    "idempotency_key": "lock_7112026_delta",
-    "env_overrides": { "target_node": "win-device-0320a6" }
+    "task_id": approval.id,
+    "command_context": approval.action,
+    "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
   }
 }, null, 2)}
                       </pre>
