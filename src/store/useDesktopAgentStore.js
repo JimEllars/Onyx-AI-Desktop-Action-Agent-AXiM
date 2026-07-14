@@ -111,6 +111,18 @@ export const useDesktopAgentStore = create((set) => ({
       }];
     }
 
+    let newThreatCount = state.threatCount;
+    if (Math.random() > 0.95) {
+      newThreatCount += 1;
+      const securityLog = {
+        id: Date.now(),
+        type: 'fault',
+        text: '[WAF_ALERT] Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.',
+        timestamp: new Date()
+      };
+      currentActionLogs = [securityLog, ...currentActionLogs].slice(0, 50);
+    }
+
     return {
       cloudflareEdgeNode: newEdge,
       cpuLoad: newCpu,
