@@ -62,7 +62,7 @@ export const useDesktopAgentStore = create((set) => ({
     const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
 
     let currentActionLogs = state.actionLogs;
-    if (newStatus === 'MISS' || newStatus === 'DYNAMIC') {
+    if ((newStatus === 'MISS' || newStatus === 'DYNAMIC') && newStatus !== state.cfCacheStatus) {
       const newLog = {
         id: Date.now(),
         type: 'network',
@@ -91,7 +91,7 @@ export const useDesktopAgentStore = create((set) => ({
     const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
 
     let currentActionLogs = state.actionLogs;
-    if (newStatus === 'MISS' || newStatus === 'DYNAMIC') {
+    if ((newStatus === 'MISS' || newStatus === 'DYNAMIC') && newStatus !== state.cfCacheStatus) {
       const newLog = {
         id: Date.now(),
         type: 'network',
