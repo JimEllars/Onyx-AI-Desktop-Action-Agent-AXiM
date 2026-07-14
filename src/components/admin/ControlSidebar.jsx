@@ -36,7 +36,7 @@ export default function ControlSidebar() {
     addActionLog({ type: 'network', text: '[CONNECT] Initiating bulk data chunk ingestion stream via Cloudflare Edge-Bridge...' });
     await new Promise(resolve => setTimeout(resolve, 600));
     clearLocalBufferQueue();
-    addActionLog({ type: 'success', text: '[ENRICHMENT] Successfully processed staged local buffer chunks. Multi-app fan-out complete.' });
+    addActionLog({ type: 'success', text: '[SUCCESS] [CLOUDFLARE_EDGE] Successfully processed staged local buffer chunks. Multi-app fan-out complete.' });
     setIsProcessingBuffer(false);
   };
 

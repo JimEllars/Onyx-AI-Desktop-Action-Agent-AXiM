@@ -117,7 +117,7 @@ export const useDesktopAgentStore = create((set) => ({
       const securityLog = {
         id: Date.now(),
         type: 'fault',
-        text: '[WAF_ALERT] Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.',
+        text: '[FAULT] [WAF_ALERT] Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.',
         timestamp: new Date()
       };
       currentActionLogs = [securityLog, ...currentActionLogs].slice(0, 50);
