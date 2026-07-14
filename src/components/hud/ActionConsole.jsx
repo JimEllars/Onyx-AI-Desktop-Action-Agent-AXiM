@@ -35,6 +35,7 @@ export default function ActionConsole({ className = "" }) {
             const isAsguardShield = log.text?.includes('[ASGUARD_SHIELD]');
             const isEnrichment = log.text?.includes('[ENRICHMENT]');
             const isHITL = log.text?.includes('[HITL]');
+            const isSuccess = log.text?.includes('[SUCCESS]');
             return (
               <motion.div
                 key={log.id}
@@ -49,6 +50,7 @@ export default function ActionConsole({ className = "" }) {
                   isHITL ? 'text-fuchsia-400 font-semibold tracking-wider' :
                   isAsguardShield ? 'text-red-400 font-bold tracking-wide animate-pulse' :
                   isEnrichment ? 'text-emerald-400 tracking-wide font-medium' :
+                  isSuccess ? 'text-cyan-400 font-bold' :
                   isIdentity ? 'text-amber-400 tracking-wide font-bold' :
                   isConnect ? 'text-purple-400' :
                   isRecovery ? 'text-cyan-400' :
