@@ -68,21 +68,21 @@ export default function ChatInterface() {
     setSystemStatus('EXECUTING');
 
     const intent = parseCommand(userMsg);
-    
+
     const taskId = 'ONYX-CMD-' + Math.floor(Math.random() * 10000);
     setActiveTaskId(taskId);
 
     setTimeout(() => {
       addActionLog({ type: 'task', text: `Intent Identified: ${intent}` });
       addActionLog({ type: 'action', text: `[EXECUTE] Native Bridge dispatching instruction matrix for intent: ${intent}...` });
-      
+
       setTimeout(() => {
         addActionLog({ type: 'system', text: `[SUCCESS] Swarm execution sequence finalized down-tier. Telemetry logs transmitted.` });
-        
+
         let response = "Instruction received. I've initiated the physical action sequence. Hardware telemetry remains stable.";
         if (intent === 'OS_BROWSER_OPEN') response = "Opening secure browser environment. Redirecting proxy through AXiM WAF.";
         if (intent === 'CLI_EXECUTE_SECURE') response = "PowerShell child-process spawned. Executing sanitized script parameters.";
-        
+
         const msgId = Date.now();
         addMessage({ id: msgId, role: 'assistant', text: '' });
 
@@ -94,7 +94,6 @@ export default function ChatInterface() {
           if (i >= response.length) {
             useDesktopAgentStore.getState().updateMessageText(msgId, response);
             clearInterval(intervalId);
-            inputRef.current?.focus();
             setSystemStatus('READY');
             setActiveTaskId(null);
           }
@@ -134,8 +133,8 @@ export default function ChatInterface() {
               className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div className={`max-w-[75%] p-5 rounded-2xl text-[13px] leading-relaxed relative ${
-                msg.role === 'user' 
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-100' 
+                msg.role === 'user'
+                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-100'
                   : 'bg-slate-900/80 border border-slate-800 text-slate-200 backdrop-blur-md'
               }`}>
                 {msg.role === 'assistant' && (
@@ -216,8 +215,8 @@ export default function ChatInterface() {
                 : 'bg-slate-950/50 border-slate-800 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 text-emerald-100 placeholder:text-slate-600'
             }`}
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
             className={`absolute right-4 p-2 border rounded-lg transition-all ${
               systemStatus === 'ERROR'

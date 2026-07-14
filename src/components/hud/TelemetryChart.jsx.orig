@@ -50,11 +50,11 @@ export default function TelemetryChart() {
       itemHeight: 8
     },
     grid: { top: 10, bottom: 25, left: 10, right: 10, containLabel: false },
-    xAxis: { show: false, type: 'category', splitLine: { show: false } },
+    xAxis: { show: false, type: 'category' },
     yAxis: [
-      { show: false, type: 'value', scale: true, splitLine: { show: false } },
-      { show: false, type: 'value', scale: true, splitLine: { show: false } },
-      { show: false, type: 'value', scale: true, splitLine: { show: false } }
+      { show: false, type: 'value', scale: true },
+      { show: false, type: 'value', scale: true },
+      { show: false, type: 'value', scale: true }
     ],
     series: [
       {
