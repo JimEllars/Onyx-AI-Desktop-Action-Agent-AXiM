@@ -4,8 +4,15 @@ import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus } = useDesktopAgentStore();
+  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
+
+  const getLatencyToken = (latency) => {
+    if (latency < 30) return <span className="text-emerald-500 font-bold">[EXCELLENT]</span>;
+    if (latency <= 50) return <span className="text-amber-500 font-bold">[NOMINAL]</span>;
+    return <span className="text-red-400 font-bold animate-pulse">[DEGRADED]</span>;
+  };
+
 
   const handleForceFlush = async () => {
     if (systemStatus === 'ERROR') {
@@ -47,6 +54,17 @@ export default function ControlSidebar() {
         </button>
         
         <button
+          onClick={() => {
+            clearLocalBufferQueue();
+            addActionLog({ type: 'system', text: '[ENRICHMENT] Successfully processed staged local buffer chunks. Multi-app fan-out complete.' });
+          }}
+          disabled={localQueueCount === 0 || systemStatus === 'ERROR'}
+          className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${(localQueueCount === 0 || systemStatus === 'ERROR') ? 'bg-slate-950/50 border-slate-900 text-slate-700 cursor-not-allowed' : 'bg-slate-950 border-slate-800 hover:border-fuchsia-900 text-fuchsia-400 hover:shadow-[0_0_10px_rgba(232,121,249,0.1)]'}`}
+        >
+          [PROCESS_STAGED_VIRTUAL_BUFFER]
+        </button>
+
+        <button
           onClick={handleClearCache}
           className="w-full flex items-center justify-center gap-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 px-4 py-3 text-xs text-amber-500 font-bold rounded transition-all duration-150 hover:border-amber-900 hover:shadow-[0_0_10px_rgba(245,158,11,0.1)]"
         >
@@ -74,7 +92,7 @@ export default function ControlSidebar() {
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Network Latency:</span>
-            <span className="text-amber-500">{networkLatencyMs.toFixed(0)} ms</span>
+            <span className="text-amber-500">{networkLatencyMs.toFixed(0)} ms {getLatencyToken(networkLatencyMs)}</span>
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Edge Node:</span>

@@ -52,10 +52,12 @@ export default function ChatInterface() {
       addMessage({ id: msgId, role: 'assistant', text: '' });
 
       let i = 0;
+      const step = errorText.length > 150 ? 3 : 1;
       const intervalId = setInterval(() => {
-        useDesktopAgentStore.getState().updateMessageText(msgId, errorText.slice(0, i + 1));
-        i++;
-        if (i === errorText.length) {
+        useDesktopAgentStore.getState().updateMessageText(msgId, errorText.slice(0, i + step));
+        i += step;
+        if (i >= errorText.length) {
+          useDesktopAgentStore.getState().updateMessageText(msgId, errorText);
           clearInterval(intervalId);
           setSystemStatus('ERROR');
         }
@@ -85,10 +87,12 @@ export default function ChatInterface() {
         addMessage({ id: msgId, role: 'assistant', text: '' });
 
         let i = 0;
+        const step = response.length > 150 ? 3 : 1;
         const intervalId = setInterval(() => {
-          useDesktopAgentStore.getState().updateMessageText(msgId, response.slice(0, i + 1));
-          i++;
-          if (i === response.length) {
+          useDesktopAgentStore.getState().updateMessageText(msgId, response.slice(0, i + step));
+          i += step;
+          if (i >= response.length) {
+            useDesktopAgentStore.getState().updateMessageText(msgId, response);
             clearInterval(intervalId);
             setSystemStatus('READY');
             setActiveTaskId(null);
