@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { aximCoreClient } from '../lib/supabaseClient.js';
 
 export const useDesktopAgentStore = create((set) => ({
   walletConnected: false,
@@ -56,10 +57,9 @@ export const useDesktopAgentStore = create((set) => ({
     pendingApprovals: [...state.pendingApprovals, approval]
   })),
 
-  updateCloudflareMetrics: () => set((state) => {
-    const statuses = ['HIT', 'MISS', 'DYNAMIC'];
-    const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+  updateCloudflareMetrics: (data) => set((state) => {
+    const newStatus = data?.cfCacheStatus || state.cfCacheStatus;
+    const newRayId = data?.cfRayId || state.cfRayId;
 
     let currentActionLogs = state.actionLogs;
     if ((newStatus === 'MISS' || newStatus === 'DYNAMIC') && newStatus !== state.cfCacheStatus) {
@@ -74,21 +74,18 @@ export const useDesktopAgentStore = create((set) => ({
     return {
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
+      actionLogs: currentActionLogs
     };
   }),
 
-  updateTelemetry: () => set((state) => {
-    const newCpu = Math.max(5, Math.min(95, state.cpuLoad + (Math.random() * 10 - 5)));
-    const newMemory = Math.max(100, Math.min(500, state.memoryUsage + (Math.random() * 20 - 10)));
-    const newLatency = Math.max(15, Math.min(60, state.networkLatencyMs + (Math.random() * 4 - 2)));
+  updateTelemetry: (data) => set((state) => {
+    const newCpu = data?.cpuLoad ?? state.cpuLoad;
+    const newMemory = data?.memoryUsage ?? state.memoryUsage;
+    const newLatency = data?.networkLatencyMs ?? state.networkLatencyMs;
+    const newEdge = data?.cloudflareEdgeNode ?? state.cloudflareEdgeNode;
 
-    // Cycle edge node occasionally
-    const edges = ['DFW-Core', 'ORD-Transit', 'ATL-Ingress'];
-    const newEdge = Math.random() > 0.8 ? edges[Math.floor(Math.random() * edges.length)] : state.cloudflareEdgeNode;
-
-    const statuses = ['HIT', 'MISS', 'DYNAMIC'];
-    const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    const newRayId = Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+    const newStatus = data?.cfCacheStatus || state.cfCacheStatus;
+    const newRayId = data?.cfRayId || state.cfRayId;
 
     let currentActionLogs = state.actionLogs;
     if ((newStatus === 'MISS' || newStatus === 'DYNAMIC') && newStatus !== state.cfCacheStatus) {
@@ -102,17 +99,12 @@ export const useDesktopAgentStore = create((set) => ({
     }
 
     let newPendingApprovals = state.pendingApprovals;
-    if (state.systemStatus === 'READY' && state.pendingApprovals.length < 3 && Math.random() > 0.9) {
-      newPendingApprovals = [...state.pendingApprovals, {
-        id: 'MCP-SIM-' + Math.floor(Math.random() * 10000),
-        agent: 'Ecosystem Bridge Node',
-        action: 'Secure Token Rotation',
-        details: 'Automated API token refresh cycle initiated by secure Cloudflare edge crons.'
-      }];
+    if (data?.pendingApproval) {
+      newPendingApprovals = [...state.pendingApprovals, data.pendingApproval];
     }
 
     let newThreatCount = state.threatCount;
-    if (Math.random() > 0.95) {
+    if (data?.threatDetected) {
       newThreatCount += 1;
       const securityLog = {
         id: Date.now(),
@@ -135,6 +127,40 @@ export const useDesktopAgentStore = create((set) => ({
       cfRayId: newRayId,
       pendingApprovals: newPendingApprovals,
       threatCount: newThreatCount,
+      actionLogs: currentActionLogs
+    };
+  }),
+
+  setLiveTelemetry: (data) => set((state) => {
+    const newCpu = data?.cpuLoad ?? state.cpuLoad;
+    const newMemory = data?.memoryUsage ?? state.memoryUsage;
+    const newLatency = data?.networkLatencyMs ?? state.networkLatencyMs;
+    const newEdge = data?.cloudflareEdgeNode ?? state.cloudflareEdgeNode;
+
+    const newStatus = data?.cfCacheStatus || state.cfCacheStatus;
+    const newRayId = data?.cfRayId || state.cfRayId;
+
+    let currentActionLogs = state.actionLogs;
+    if ((newStatus === 'MISS' || newStatus === 'DYNAMIC') && newStatus !== state.cfCacheStatus) {
+      const newLog = {
+        id: Date.now(),
+        type: 'network',
+        text: `[CLOUDFLARE_EDGE] Cache state: ${newStatus}. Re-routing proxy re-validation down-tier via ray id: [${newRayId.substring(0, 8)}]...`,
+        timestamp: new Date()
+      };
+      currentActionLogs = [newLog, ...state.actionLogs].slice(0, 50);
+    }
+
+    return {
+      cloudflareEdgeNode: newEdge,
+      cpuLoad: newCpu,
+      memoryUsage: newMemory,
+      networkLatencyMs: newLatency,
+      cpuHistory: [...state.cpuHistory, newCpu].slice(-20),
+      memoryHistory: [...state.memoryHistory, newMemory].slice(-20),
+      latencyHistory: [...state.latencyHistory, newLatency].slice(-20),
+      cfCacheStatus: newStatus,
+      cfRayId: newRayId,
       actionLogs: currentActionLogs
     };
   }),
