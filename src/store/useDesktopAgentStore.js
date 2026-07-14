@@ -29,7 +29,11 @@ export const useDesktopAgentStore = create((set) => ({
   ],
 
   addMessage: (msg) => set((state) => ({ 
-    messages: [...state.messages, { ...msg, id: Date.now(), timestamp: new Date() }]
+    messages: [...state.messages, { ...msg, id: msg.id || Date.now(), timestamp: new Date() }]
+  })),
+
+  updateMessageText: (id, newText) => set((state) => ({
+    messages: state.messages.map((msg) => msg.id === id ? { ...msg, text: newText } : msg)
   })),
 
   addActionLog: (log) => set((state) => {

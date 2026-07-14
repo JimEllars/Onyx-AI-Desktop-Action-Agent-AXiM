@@ -47,11 +47,19 @@ export default function ChatInterface() {
     const lowerMsg = userMsg.toLowerCase();
     if (lowerMsg.includes('rm -rf') || lowerMsg.includes('sudo') || lowerMsg.includes('drop table') || lowerMsg.includes('format c:')) {
       addActionLog({ type: 'error', text: `[FAULT] Interceptor Shield blocked execution target for task node: ${userMsg.trim()}` });
-      addMessage({
-        role: 'assistant',
-        text: "Security Protocol Violation. Destructive execution signature detected. This incident has been flagged and transmitted directly to the Asguard Security SOC Dashboard."
-      });
-      setSystemStatus('ERROR');
+      const errorText = "Security Protocol Violation. Destructive execution signature detected. This incident has been flagged and transmitted directly to the Asguard Security SOC Dashboard.";
+      const msgId = Date.now();
+      addMessage({ id: msgId, role: 'assistant', text: '' });
+
+      let i = 0;
+      const intervalId = setInterval(() => {
+        useDesktopAgentStore.getState().updateMessageText(msgId, errorText.slice(0, i + 1));
+        i++;
+        if (i === errorText.length) {
+          clearInterval(intervalId);
+          setSystemStatus('ERROR');
+        }
+      }, 30);
       return;
     }
 
@@ -73,9 +81,19 @@ export default function ChatInterface() {
         if (intent === 'OS_BROWSER_OPEN') response = "Opening secure browser environment. Redirecting proxy through AXiM WAF.";
         if (intent === 'CLI_EXECUTE_SECURE') response = "PowerShell child-process spawned. Executing sanitized script parameters.";
         
-        addMessage({ role: 'assistant', text: response });
-        setSystemStatus('READY');
-        setActiveTaskId(null);
+        const msgId = Date.now();
+        addMessage({ id: msgId, role: 'assistant', text: '' });
+
+        let i = 0;
+        const intervalId = setInterval(() => {
+          useDesktopAgentStore.getState().updateMessageText(msgId, response.slice(0, i + 1));
+          i++;
+          if (i === response.length) {
+            clearInterval(intervalId);
+            setSystemStatus('READY');
+            setActiveTaskId(null);
+          }
+        }, 30);
       }, 1200);
     }, 600);
   };
