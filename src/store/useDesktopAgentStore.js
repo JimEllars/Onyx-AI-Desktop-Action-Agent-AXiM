@@ -134,6 +134,7 @@ export const useDesktopAgentStore = create((set) => ({
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
       pendingApprovals: newPendingApprovals,
+      threatCount: newThreatCount,
       actionLogs: currentActionLogs
     };
   }),
