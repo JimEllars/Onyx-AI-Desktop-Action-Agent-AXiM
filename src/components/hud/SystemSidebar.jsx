@@ -9,6 +9,13 @@ export default function SystemSidebar() {
   const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId } = useDesktopAgentStore();
 
 
+
+  const getLatencyToken = (latency) => {
+    if (latency < 30) return <span className="text-emerald-500 font-bold">[EXCELLENT]</span>;
+    if (latency <= 50) return <span className="text-amber-500 font-bold">[NOMINAL]</span>;
+    return <span className="text-red-400 font-bold animate-pulse">[DEGRADED]</span>;
+  };
+
   const stats = [
     { label: 'CPU LOAD', val: `${cpuLoad.toFixed(1)}%`, width: `${cpuLoad}%`, icon: FiCpu, color: 'text-emerald-400' },
     { label: 'MEM VOL', val: `${memoryUsage.toFixed(0)} MB`, width: `${(memoryUsage / 500) * 100}%`, icon: FiLayers, color: 'text-cyan-400' },
@@ -34,7 +41,7 @@ export default function SystemSidebar() {
                 </div>
                 <span className="text-[10px] text-slate-400 font-bold">{stat.label}</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-200 font-mono tracking-tighter">{stat.val}</span>
+              <span className="text-[10px] font-bold text-slate-200 font-mono tracking-tighter">{stat.label === "LATENCY" ? <>{stat.val} {getLatencyToken(networkLatencyMs)}</> : stat.val}</span>
             </div>
             <div className="h-0.5 bg-slate-800/50 rounded-full overflow-hidden">
               <motion.div 
