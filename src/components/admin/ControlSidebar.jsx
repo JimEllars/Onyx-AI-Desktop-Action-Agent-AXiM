@@ -6,6 +6,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function ControlSidebar() {
   const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
+  const [isProcessingBuffer, setIsProcessingBuffer] = useState(false);
 
   const getLatencyToken = (latency) => {
     if (latency < 30) return <span className="text-emerald-500 font-bold">[EXCELLENT]</span>;
@@ -28,6 +29,15 @@ export default function ControlSidebar() {
     clearLocalBufferQueue();
     addActionLog({ type: 'success', text: '[CLOUDFLARE_EDGE] Matrix synchronization complete. Storage sequence finalized.' });
     setIsFlushing(false);
+  };
+
+  const handleProcessBuffer = async () => {
+    setIsProcessingBuffer(true);
+    addActionLog({ type: 'network', text: '[CONNECT] Initiating bulk data chunk ingestion stream via Cloudflare Edge-Bridge...' });
+    await new Promise(resolve => setTimeout(resolve, 600));
+    clearLocalBufferQueue();
+    addActionLog({ type: 'system', text: '[ENRICHMENT] Successfully processed staged local buffer chunks. Multi-app fan-out complete.' });
+    setIsProcessingBuffer(false);
   };
 
   const handleClearCache = () => {
@@ -54,14 +64,11 @@ export default function ControlSidebar() {
         </button>
         
         <button
-          onClick={() => {
-            clearLocalBufferQueue();
-            addActionLog({ type: 'system', text: '[ENRICHMENT] Successfully processed staged local buffer chunks. Multi-app fan-out complete.' });
-          }}
-          disabled={localQueueCount === 0 || systemStatus === 'ERROR'}
-          className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${(localQueueCount === 0 || systemStatus === 'ERROR') ? 'bg-slate-950/50 border-slate-900 text-slate-700 cursor-not-allowed' : 'bg-slate-950 border-slate-800 hover:border-fuchsia-900 text-fuchsia-400 hover:shadow-[0_0_10px_rgba(232,121,249,0.1)]'}`}
+          onClick={handleProcessBuffer}
+          disabled={localQueueCount === 0 || systemStatus === 'ERROR' || isProcessingBuffer}
+          className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${isProcessingBuffer ? 'bg-fuchsia-950/40 border-fuchsia-500 text-fuchsia-200' : (localQueueCount === 0 || systemStatus === 'ERROR') ? 'bg-slate-950/50 border-slate-900 text-slate-700 cursor-not-allowed' : 'bg-slate-950 border-slate-800 hover:border-fuchsia-900 text-fuchsia-400 hover:shadow-[0_0_10px_rgba(232,121,249,0.1)]'}`}
         >
-          [PROCESS_STAGED_VIRTUAL_BUFFER]
+          {isProcessingBuffer ? '[PROCESSING_BUFFER...]' : '[PROCESS_STAGED_VIRTUAL_BUFFER]'}
         </button>
 
         <button
