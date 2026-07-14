@@ -1,0 +1,13 @@
+cat << 'PATCH' > chat.patch
+--- src/components/chat/ChatInterface.jsx
++++ src/components/chat/ChatInterface.jsx
+@@ -86,6 +86,7 @@
+           if (i >= response.length) {
+             useDesktopAgentStore.getState().updateMessageText(msgId, response);
+             clearInterval(intervalId);
++            inputRef.current?.focus();
+             setSystemStatus('READY');
+             setActiveTaskId(null);
+           }
+PATCH
+patch src/components/chat/ChatInterface.jsx chat.patch
