@@ -3,7 +3,7 @@ import { aximCoreClient } from '../lib/supabaseClient.js';
 import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 
 export function useAgentConnection() {
-  const { setLiveTelemetry, walletConnected } = useDesktopAgentStore();
+  const { setLiveTelemetry, walletConnected, setLiveChannelConnected } = useDesktopAgentStore();
 
   useEffect(() => {
     if (!walletConnected) return;
@@ -24,13 +24,15 @@ export function useAgentConnection() {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('[AGENT_CONNECTION] Successfully subscribed to agent_telemetry_stream.');
+          setLiveChannelConnected(true);
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
           console.error('[AGENT_CONNECTION] Channel subscription error or closed:', status);
+          setLiveChannelConnected(false);
         }
       });
 
     return () => {
       aximCoreClient.removeChannel(channel);
     };
-  }, [setLiveTelemetry, walletConnected]);
+  }, [setLiveTelemetry, walletConnected, setLiveChannelConnected]);
 }

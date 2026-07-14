@@ -3,6 +3,7 @@ import { aximCoreClient } from '../lib/supabaseClient.js';
 
 export const useDesktopAgentStore = create((set) => ({
   walletConnected: false,
+  isLiveChannelConnected: false,
   currentView: 'HUD',
   cpuHistory: [],
   memoryHistory: [],
@@ -178,6 +179,7 @@ export const useDesktopAgentStore = create((set) => ({
     pendingApprovals: []
   }),
 
+  setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
   setView: (viewName) => set({ currentView: viewName }),
   setSystemStatus: (status) => set({ systemStatus: status }),
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
