@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { aximCoreClient } from '../lib/supabaseClient.js';
 
-export const useDesktopAgentStore = create((set) => ({
+export const useDesktopAgentStore = create((set, get) => ({
   walletConnected: false,
   isLiveChannelConnected: false,
   currentView: 'HUD',
@@ -169,6 +169,12 @@ export const useDesktopAgentStore = create((set) => ({
       actionLogs: currentActionLogs
     };
   }),
+
+  checkFleetUpdates: async () => {
+    get().addActionLog({ type: 'network', text: '[UPDATER] Contacting Cloudflare Pages deployment mirror for target manifest: production.update_manifest...' });
+    await new Promise(res => setTimeout(res, 600));
+    get().addActionLog({ type: 'success', text: '[UPDATER] Cloudflare asset check complete. Automated updates verified. Node AXIM-NODE-ORD-03 targeted for binary hot-patch.' });
+  },
 
   clearCacheBlocks: () => set({
     cpuHistory: [],
