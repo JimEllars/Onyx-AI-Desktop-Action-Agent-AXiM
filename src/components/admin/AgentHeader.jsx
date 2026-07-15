@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected } = useDesktopAgentStore();
+  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -49,7 +49,11 @@ export default function AgentHeader() {
       </div>
 
       <div className="flex items-center gap-6">
+
         <div className="hidden md:flex flex-col items-end">
+          <div className="border border-slate-800 text-slate-400 font-mono text-[9px] tracking-wider px-2 py-0.5 bg-slate-950/60 rounded mb-1 inline-block">
+            MESH_NODE // {localNodeId}
+          </div>
           <span className="text-[9px] text-slate-500 tracking-widest font-bold uppercase">Identity Verified</span>
           <div className="flex items-center gap-2 text-[10px] text-emerald-400/80 font-bold">
             <SafeIcon icon={FiLock} className="text-[8px]" />

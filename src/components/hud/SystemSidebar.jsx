@@ -6,7 +6,7 @@ import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId } = useDesktopAgentStore();
+  const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog } = useDesktopAgentStore();
 
 
 
@@ -51,6 +51,27 @@ export default function SystemSidebar() {
             </div>
           </div>
         ))}
+      </div>
+
+
+      <div className="shrink-0 pt-4 border-t border-slate-800/50 space-y-3 mb-2">
+        <span className="text-[9px] text-slate-500 font-bold tracking-widest uppercase block border-l-2 border-emerald-500 pl-2">Core Orchestration Mode</span>
+        <button
+          onClick={() => {
+            toggleAutopilot();
+            addActionLog({
+              type: 'system',
+              text: `[HITL] Operational execution parameters swapped. Autopilot state mutated to: [${!autopilotActive ? 'TRUE' : 'FALSE'}]`
+            });
+          }}
+          className={
+            autopilotActive
+              ? 'w-full border border-emerald-500/30 text-emerald-400 bg-emerald-950/10 text-[9px] font-bold p-2 rounded tracking-widest text-center cursor-pointer block uppercase shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+              : 'w-full border border-amber-500/30 text-amber-500 bg-amber-950/10 text-[9px] font-bold p-2 rounded tracking-widest text-center cursor-pointer block uppercase animate-pulse'
+          }
+        >
+          {autopilotActive ? '[AUTOPILOT_ACTIVE]' : '[MANUAL_OVERRIDE_LOCK]'}
+        </button>
       </div>
 
       <div className="shrink-0 pt-4 border-t border-slate-800/50 space-y-3 mb-2">

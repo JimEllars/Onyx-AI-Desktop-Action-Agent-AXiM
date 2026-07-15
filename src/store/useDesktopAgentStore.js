@@ -15,6 +15,8 @@ export const useDesktopAgentStore = create((set) => ({
   threatCount: 0,
   networkLatencyMs: 24,
   systemStatus: 'AUTHENTICATING', // READY, EXECUTING, ERROR, AUTHENTICATING
+  localNodeId: 'AXIM-NODE-LAX-01',
+  autopilotActive: true,
   cloudflareEdgeNode: 'DFW-Core',
   cpuLoad: 12,
   memoryUsage: 142,
@@ -29,6 +31,8 @@ export const useDesktopAgentStore = create((set) => ({
   actionLogs: [
     { id: 1, type: 'system', text: 'Kernel loaded. Arbitrum SIWE handshake complete.', timestamp: new Date() }
   ],
+
+  toggleAutopilot: () => set((state) => ({ autopilotActive: !state.autopilotActive })),
 
   addMessage: (msg) => set((state) => ({ 
     messages: [...state.messages, { ...msg, id: msg.id || Date.now(), timestamp: new Date() }]
@@ -100,7 +104,7 @@ export const useDesktopAgentStore = create((set) => ({
     }
 
     let newPendingApprovals = state.pendingApprovals;
-    if (data?.pendingApproval) {
+    if (data?.pendingApproval && state.systemStatus === 'READY' && state.autopilotActive === true) {
       newPendingApprovals = [...state.pendingApprovals, data.pendingApproval];
     }
 
