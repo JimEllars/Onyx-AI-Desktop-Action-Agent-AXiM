@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount } = useDesktopAgentStore();
+  const { localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -71,6 +71,15 @@ export default function AgentHeader() {
         </div>
         
         <div className="flex gap-2">
+          {isLiveChannelConnected ? (
+            <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-bold font-mono px-2 py-1.5 rounded flex flex-col items-center justify-center min-w-[75px] tracking-widest drop-shadow-[0_0_2px_rgba(16,185,129,0.4)]">
+              [EDGE_MESH]
+            </div>
+          ) : (
+            <div className="bg-amber-950/20 border border-amber-500/30 text-amber-500 text-[9px] font-bold font-mono px-2 py-1.5 rounded flex flex-col items-center justify-center min-w-[75px] tracking-widest animate-pulse">
+              [LOCAL_AUTOPILOT]
+            </div>
+          )}
           <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px]">
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">CF_CACHE</span>
             <span className={`text-[11px] font-bold ${cfCacheStatus === 'HIT' ? 'text-emerald-400' : cfCacheStatus === 'MISS' ? 'text-red-400' : 'text-amber-400'}`}>{cfCacheStatus}</span>
