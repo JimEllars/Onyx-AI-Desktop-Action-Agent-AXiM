@@ -4,7 +4,7 @@ import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount } = useDesktopAgentStore();
+  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount, checkFleetUpdates } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
   const [isProcessingBuffer, setIsProcessingBuffer] = useState(false);
 
@@ -77,6 +77,13 @@ export default function ControlSidebar() {
         >
           <SafeIcon icon={FiTrash2} />
           Clear In-Memory Cache Blocks
+        </button>
+
+        <button
+          onClick={checkFleetUpdates}
+          className="w-full flex items-center justify-center gap-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 px-4 py-3 text-xs text-purple-400 font-bold rounded transition-all duration-150 hover:border-purple-900 hover:shadow-[0_0_10px_rgba(168,85,247,0.1)]"
+        >
+          Verify Fleet Update Manifests
         </button>
       </div>
 
