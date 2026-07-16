@@ -4,8 +4,10 @@ import SystemSidebar from '../hud/SystemSidebar';
 import ActionConsole from '../hud/ActionConsole';
 import AgentHeader from '../admin/AgentHeader';
 import DropZone from '../admin/DropZone';
+import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function MainHUD() {
+  const { localNodeId, isLiveChannelConnected } = useDesktopAgentStore();
   return (
     <div className="h-screen w-full bg-slate-950 text-slate-100 overflow-hidden flex flex-col font-mono selection:bg-emerald-500/30 relative">
       {/* Background Effects */}
@@ -31,6 +33,14 @@ export default function MainHUD() {
           {/* Right: Batch & Telemetry */}
           <div className="w-80 flex flex-col gap-6 shrink-0 hidden lg:flex">
             <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-xl flex-1 flex flex-col gap-6 backdrop-blur-md">
+              <div className="border border-slate-800/80 bg-slate-950 p-3 rounded-lg text-[9px] font-mono flex flex-col gap-1 shadow-inner">
+                <span>NODE_ID: {localNodeId}</span>
+                {isLiveChannelConnected ? (
+                  <span className="text-emerald-400 font-bold">[MESH_CONNECTED]</span>
+                ) : (
+                  <span className="text-amber-500 font-bold">[AUTOPILOT_STANDALONE]</span>
+                )}
+              </div>
               <div className="space-y-4">
                 <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3">Ingestion Node</h3>
                 <DropZone targetApplication="green_machine" />

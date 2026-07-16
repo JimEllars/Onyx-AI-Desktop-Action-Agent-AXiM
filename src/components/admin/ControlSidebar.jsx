@@ -7,6 +7,7 @@ export default function ControlSidebar() {
   const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount, checkFleetUpdates } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
   const [isProcessingBuffer, setIsProcessingBuffer] = useState(false);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
 
   const getLatencyToken = (latency) => {
     if (latency < 30) return <span className="text-emerald-500 font-bold">[EXCELLENT]</span>;
@@ -80,11 +81,20 @@ export default function ControlSidebar() {
         </button>
 
         <button
-          onClick={checkFleetUpdates}
-          className="w-full flex items-center justify-center gap-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 px-4 py-3 text-xs text-purple-400 font-bold rounded transition-all duration-150 hover:border-purple-900 hover:shadow-[0_0_10px_rgba(168,85,247,0.1)]"
-        >
-          Verify Fleet Update Manifests
-        </button>
+          onClick={async () => {
+          setIsCheckingUpdates(true);
+          await checkFleetUpdates();
+          setIsCheckingUpdates(false);
+        }}
+        disabled={isCheckingUpdates || systemStatus === 'ERROR'}
+        className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${
+          isCheckingUpdates || systemStatus === 'ERROR'
+            ? 'bg-slate-950/50 border-slate-900 text-slate-700 cursor-not-allowed'
+            : 'bg-slate-950 hover:bg-slate-900 border-slate-800 text-purple-400 hover:border-purple-900 hover:shadow-[0_0_10px_rgba(168,85,247,0.1)]'
+        }`}
+      >
+        {isCheckingUpdates ? '[CHECKING_MANIFEST...]' : 'Verify Fleet Update Manifests'}
+      </button>
       </div>
 
       <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-lg space-y-4 shadow-lg">
