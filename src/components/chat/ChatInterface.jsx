@@ -167,20 +167,20 @@ export default function ChatInterface() {
         {messages.length === 1 && (
           <div className="grid grid-cols-3 gap-2 mt-4">
             <div
-              onClick={(e) => { setSystemStatus("EXECUTING"); setInput("Run latency check"); setTimeout(() => handleSend(e), 50); }}
-              className="border border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 text-[10px] font-mono p-2 rounded bg-slate-950/40 transition-colors cursor-pointer text-center"
+              onClick={(e) => { if (systemStatus === 'EXECUTING' || systemStatus === 'ERROR') return; setSystemStatus("EXECUTING"); setInput("Run latency check"); setTimeout(() => handleSend(e), 50); }}
+              className={`border text-[10px] font-mono p-2 rounded transition-colors text-center ${systemStatus === 'EXECUTING' || systemStatus === 'ERROR' ? 'opacity-40 cursor-not-allowed border-slate-900 bg-slate-950/20 text-slate-400' : 'border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 bg-slate-950/40 cursor-pointer'}`}
             >
               [SYS_DIAGNOSTICS] Run latency check
             </div>
             <div
-              onClick={(e) => { setSystemStatus("EXECUTING"); setInput("Audit execution cache"); setTimeout(() => handleSend(e), 50); }}
-              className="border border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 text-[10px] font-mono p-2 rounded bg-slate-950/40 transition-colors cursor-pointer text-center"
+              onClick={(e) => { if (systemStatus === 'EXECUTING' || systemStatus === 'ERROR') return; setSystemStatus("EXECUTING"); setInput("Audit execution cache"); setTimeout(() => handleSend(e), 50); }}
+              className={`border text-[10px] font-mono p-2 rounded transition-colors text-center ${systemStatus === 'EXECUTING' || systemStatus === 'ERROR' ? 'opacity-40 cursor-not-allowed border-slate-900 bg-slate-950/20 text-slate-400' : 'border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 bg-slate-950/40 cursor-pointer'}`}
             >
               [SECURITY_SCAN] Audit execution cache
             </div>
             <div
-              onClick={(e) => { setSystemStatus("EXECUTING"); setInput("Verify bridge tunnels"); setTimeout(() => handleSend(e), 50); }}
-              className="border border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 text-[10px] font-mono p-2 rounded bg-slate-950/40 transition-colors cursor-pointer text-center"
+              onClick={(e) => { if (systemStatus === 'EXECUTING' || systemStatus === 'ERROR') return; setSystemStatus("EXECUTING"); setInput("Verify bridge tunnels"); setTimeout(() => handleSend(e), 50); }}
+              className={`border text-[10px] font-mono p-2 rounded transition-colors text-center ${systemStatus === 'EXECUTING' || systemStatus === 'ERROR' ? 'opacity-40 cursor-not-allowed border-slate-900 bg-slate-950/20 text-slate-400' : 'border-slate-800 hover:border-emerald-500/40 text-slate-400 hover:text-emerald-400 bg-slate-950/40 cursor-pointer'}`}
             >
               [INTEGRITY_CHECK] Verify bridge tunnels
             </div>

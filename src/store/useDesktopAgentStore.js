@@ -192,17 +192,22 @@ export const useDesktopAgentStore = create((set, get) => ({
     get().addActionLog({ type: 'success', text: '[SUCCESS] [UPDATER] Automated binary update hot-patch applied cleanly to remote mesh node: AXIM-NODE-ORD-03. Fleet unified.' });
   },
 
-  clearCacheBlocks: () => set({
+    clearCacheBlocks: () => set({
     cpuHistory: [],
     memoryHistory: [],
     latencyHistory: [],
     localQueueCount: 0,
-    threatCount: 0, // Reset anomalous indicators during disaster recovery flushes
+    threatCount: 0,
     cpuLoad: 0,
     memoryUsage: 0,
     networkLatencyMs: 0,
     systemStatus: 'READY',
-    pendingApprovals: []
+    pendingApprovals: [],
+    fleetNodes: [
+      { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
+      { id: '02', uid: 'AXIM-NODE-DFW-02', os: 'Secure Edge Browser', build: 'v3.5.2', status: '[AUTOPILOT_ACTIVE]', color: 'text-cyan-400' },
+      { id: '03', uid: 'AXIM-NODE-ORD-03', os: 'Headless Engine Mesh', build: 'v3.4.1', status: '[OUT_OF_SYNC_PENDING_PATCH]', color: 'text-amber-400' }
+    ]
   }),
 
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
