@@ -6,7 +6,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function BatchIngressZone() {
   const [targetApplication, setTargetApp] = useState('green_machine');
-  const { cfCacheStatus, cfRayId } = useDesktopAgentStore();
+  const { cfCacheStatus, cfRayId, fleetNodes } = useDesktopAgentStore();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8 font-mono selection:bg-emerald-500/30">
@@ -45,27 +45,15 @@ export default function BatchIngressZone() {
             <div className="bg-slate-900/40 border border-slate-800 text-[10px] font-mono p-5 rounded-xl space-y-4 shadow-md backdrop-blur-md">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-3">Cluster Mesh Fleet Nodes Matrix</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex flex-col gap-1 p-3 bg-slate-950 rounded border border-slate-800/80">
-                  <span className="text-slate-500 font-bold uppercase tracking-widest">Node ID 01:</span>
-                  <span className="text-slate-300">AXIM-NODE-LAX-01</span>
-                  <span className="text-slate-500">OS: Native Desktop Wrapper</span>
-                  <span className="text-slate-500">Build: v3.5.2</span>
-                  <span className="text-emerald-400 font-bold mt-1">[LOCAL_PRIMARY]</span>
-                </div>
-                <div className="flex flex-col gap-1 p-3 bg-slate-950 rounded border border-slate-800/80">
-                  <span className="text-slate-500 font-bold uppercase tracking-widest">Node ID 02:</span>
-                  <span className="text-slate-300">AXIM-NODE-DFW-02</span>
-                  <span className="text-slate-500">OS: Secure Edge Browser</span>
-                  <span className="text-slate-500">Build: v3.5.2</span>
-                  <span className="text-cyan-400 font-bold mt-1">[AUTOPILOT_ACTIVE]</span>
-                </div>
-                <div className="flex flex-col gap-1 p-3 bg-slate-950 rounded border border-slate-800/80">
-                  <span className="text-slate-500 font-bold uppercase tracking-widest">Node ID 03:</span>
-                  <span className="text-slate-300">AXIM-NODE-ORD-03</span>
-                  <span className="text-slate-500">OS: Headless Engine Mesh</span>
-                  <span className="text-slate-500">Build: v3.4.1</span>
-                  <span className="text-amber-400 font-bold mt-1">[OUT_OF_SYNC_PENDING_PATCH]</span>
-                </div>
+                {fleetNodes.map((node) => (
+                  <div key={node.id} className="flex flex-col gap-1 p-3 bg-slate-950 rounded border border-slate-800/80">
+                    <span className="text-slate-500 font-bold uppercase tracking-widest">Node ID {node.id}:</span>
+                    <span className="text-slate-300">{node.uid}</span>
+                    <span className="text-slate-500">OS: {node.os}</span>
+                    <span className="text-slate-500">Build: {node.build}</span>
+                    <span className={`${node.color} font-bold mt-1`}>{node.status}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

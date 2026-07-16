@@ -22,6 +22,12 @@ export const useDesktopAgentStore = create((set, get) => ({
   memoryUsage: 142,
   cfCacheStatus: 'HIT',
   cfRayId: '8b42f6ad120ea31c',
+
+  fleetNodes: [
+    { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
+    { id: '02', uid: 'AXIM-NODE-DFW-02', os: 'Secure Edge Browser', build: 'v3.5.2', status: '[AUTOPILOT_ACTIVE]', color: 'text-cyan-400' },
+    { id: '03', uid: 'AXIM-NODE-ORD-03', os: 'Headless Engine Mesh', build: 'v3.4.1', status: '[OUT_OF_SYNC_PENDING_PATCH]', color: 'text-amber-400' }
+  ],
   pendingApprovals: [
     { id: 'MCP-HITL-7112', agent: 'Pulse Triage Swarm', action: 'Database Subscription Patch', details: 'Modify database row parameter for Affiliate Account #321: adjust subscription_fee compute debt value from 120 to 0.' }
   ],
@@ -174,6 +180,16 @@ export const useDesktopAgentStore = create((set, get) => ({
     get().addActionLog({ type: 'network', text: '[UPDATER] Contacting Cloudflare Pages deployment mirror for target manifest: production.update_manifest...' });
     await new Promise(res => setTimeout(res, 600));
     get().addActionLog({ type: 'success', text: '[UPDATER] Cloudflare asset check complete. Automated updates verified. Node AXIM-NODE-ORD-03 targeted for binary hot-patch.' });
+
+    await new Promise(res => setTimeout(res, 800));
+    set((state) => ({
+      fleetNodes: state.fleetNodes.map((node) =>
+        node.id === '03'
+          ? { ...node, build: 'v3.5.2', status: '[MUTATED_AND_SYNCED]', color: 'text-emerald-400' }
+          : node
+      )
+    }));
+    get().addActionLog({ type: 'success', text: '[SUCCESS] [UPDATER] Automated binary update hot-patch applied cleanly to remote mesh node: AXIM-NODE-ORD-03. Fleet unified.' });
   },
 
   clearCacheBlocks: () => set({
