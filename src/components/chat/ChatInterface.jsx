@@ -7,7 +7,7 @@ import NeuralInterface from '../hud/NeuralInterface';
 
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode } = useDesktopAgentStore();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -117,6 +117,26 @@ export default function ChatInterface() {
           <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Neural Link: Active</span>
         </div>
         <div className="flex gap-4">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCommunicationMode('TEXT')}
+              className={communicationMode === 'TEXT' ? 'text-emerald-400 border border-emerald-500/30 bg-emerald-950/20 text-[8px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase' : 'text-slate-500 border border-transparent text-[8px] px-1.5 py-0.5 rounded cursor-pointer hover:text-slate-300 uppercase'}
+            >
+              [TXT]
+            </button>
+            <button
+              onClick={() => setCommunicationMode('AUDIO_ONLY')}
+              className={communicationMode === 'AUDIO_ONLY' ? 'text-emerald-400 border border-emerald-500/30 bg-emerald-950/20 text-[8px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase' : 'text-slate-500 border border-transparent text-[8px] px-1.5 py-0.5 rounded cursor-pointer hover:text-slate-300 uppercase'}
+            >
+              [AUDIO]
+            </button>
+            <button
+              onClick={() => setCommunicationMode('DISCUSSION')}
+              className={communicationMode === 'DISCUSSION' ? 'text-emerald-400 border border-emerald-500/30 bg-emerald-950/20 text-[8px] font-bold px-1.5 py-0.5 rounded cursor-pointer transition-all uppercase' : 'text-slate-500 border border-transparent text-[8px] px-1.5 py-0.5 rounded cursor-pointer hover:text-slate-300 uppercase'}
+            >
+              [DISCUSS]
+            </button>
+          </div>
           <div className="flex items-center gap-2 text-[9px] text-slate-500">
             <SafeIcon icon={FiTerminal} />
             <span>BRIDGE_V1.8</span>
@@ -200,33 +220,45 @@ export default function ChatInterface() {
           </div>
         )}
         <div className="relative flex items-center">
-          <div className="absolute left-4 w-6 h-6 rounded-full border border-slate-700 flex items-center justify-center">
-            <SafeIcon icon={FiCommand} className="text-[10px] text-slate-500" />
-          </div>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED. Clear execution cache blocks to restore operations..." : systemStatus === 'EXECUTING' ? "Swarm execution sequence in progress... Awaiting edge confirmation" : "Issue physical action command, Sir..."}
-            disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
-            className={`w-full border rounded-xl py-4 pl-14 pr-14 text-sm outline-none transition-all font-mono ${
-              systemStatus === 'ERROR'
-                ? 'bg-red-950/20 border-red-900/40 text-red-300 focus:ring-0 placeholder:text-red-800/50'
-                : 'bg-slate-950/50 border-slate-800 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 text-emerald-100 placeholder:text-slate-600'
-            }`}
-          />
-          <button 
-            type="submit" 
-            disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
-            className={`absolute right-4 p-2 border rounded-lg transition-all ${
-              systemStatus === 'ERROR'
-                ? 'bg-red-900/10 border-red-900/20 text-red-800/50 cursor-not-allowed'
-                : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 text-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-            }`}
-          >
-            <SafeIcon icon={FiSend} />
-          </button>
+          {communicationMode === 'AUDIO_ONLY' ? (
+            <div className="bg-amber-950/10 border border-dashed border-amber-500/30 rounded-xl p-4 w-full text-center text-amber-500 font-mono text-xs animate-pulse">
+              [VOICE_CHANNEL_STANDBY] Mr. Ellars, voice phone handshake authenticated over secure AXiM line. Awaiting audio input...
+            </div>
+          ) : communicationMode === 'DISCUSSION' ? (
+            <div className="bg-purple-950/10 border border-dashed border-purple-500/30 text-purple-400 text-xs animate-pulse p-4 w-full text-center font-mono">
+              [DISCUSSION_MODE_ACTIVE] Multi-modal conversation thread active. Synthetic audio-response bridge engaged.
+            </div>
+          ) : (
+            <>
+              <div className="absolute left-4 w-6 h-6 rounded-full border border-slate-700 flex items-center justify-center">
+                <SafeIcon icon={FiCommand} className="text-[10px] text-slate-500" />
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={systemStatus === 'ERROR' ? "TERMINAL LOCKED. Clear execution cache blocks to restore operations..." : systemStatus === 'EXECUTING' ? "Swarm execution sequence in progress... Awaiting edge confirmation" : "Issue physical action command, Sir..."}
+                disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
+                className={`w-full border rounded-xl py-4 pl-14 pr-14 text-sm outline-none transition-all font-mono ${
+                  systemStatus === 'ERROR'
+                    ? 'bg-red-950/20 border-red-900/40 text-red-300 focus:ring-0 placeholder:text-red-800/50'
+                    : 'bg-slate-950/50 border-slate-800 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 text-emerald-100 placeholder:text-slate-600'
+                }`}
+              />
+              <button
+                type="submit"
+                disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
+                className={`absolute right-4 p-2 border rounded-lg transition-all ${
+                  systemStatus === 'ERROR'
+                    ? 'bg-red-900/10 border-red-900/20 text-red-800/50 cursor-not-allowed'
+                    : 'bg-emerald-500/10 hover:bg-emerald-500/20 border-emerald-500/20 text-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                }`}
+              >
+                <SafeIcon icon={FiSend} />
+              </button>
+            </>
+          )}
         </div>
       </form>
     </div>
