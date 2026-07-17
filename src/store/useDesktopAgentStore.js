@@ -14,7 +14,8 @@ export const useDesktopAgentStore = create((set, get) => ({
   localQueueCount: 0,
   threatCount: 0,
   networkLatencyMs: 24,
-  systemStatus: 'AUTHENTICATING', // READY, EXECUTING, ERROR, AUTHENTICATING
+  systemStatus: 'AUTHENTICATING',
+  communicationMode: 'TEXT',
   localNodeId: 'AXIM-NODE-LAX-01',
   autopilotActive: true,
   cloudflareEdgeNode: 'DFW-Core',
@@ -39,6 +40,8 @@ export const useDesktopAgentStore = create((set, get) => ({
   ],
 
   toggleAutopilot: () => set((state) => ({ autopilotActive: !state.autopilotActive })),
+
+  setCommunicationMode: (mode) => set({ communicationMode: mode }),
 
   addMessage: (msg) => set((state) => ({ 
     messages: [...state.messages, { ...msg, id: msg.id || Date.now(), timestamp: new Date() }]
