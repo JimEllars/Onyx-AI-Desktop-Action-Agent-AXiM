@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { aximCoreClient } from '../lib/supabaseClient.js';
 
 export const useDesktopAgentStore = create((set, get) => ({
-  walletConnected: true,
+  walletConnected: false,
   isLiveChannelConnected: false,
   currentView: 'HUD',
   cpuHistory: [],
@@ -230,6 +230,16 @@ export const useDesktopAgentStore = create((set, get) => ({
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
   clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
   setActiveTaskId: (id) => set({ activeTaskId: id }),
+  logoutUser: () => set((state) => ({
+    walletConnected: false,
+    operatorAddress: null,
+    operatorRole: null,
+    systemStatus: 'AUTHENTICATING',
+    actionLogs: [
+      { id: Date.now(), type: 'system', text: `[IDENTITY] Session teardown complete. SIWE credentials cleared.`, timestamp: new Date() },
+      ...state.actionLogs
+    ]
+  })),
   loginUser: (address) => set((state) => ({
     walletConnected: true,
     operatorAddress: address,
