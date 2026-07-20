@@ -1,11 +1,11 @@
 import React from 'react';
 import SafeIcon from '../../common/SafeIcon';
-import { FiShield, FiDatabase, FiLock, FiAward } from 'react-icons/fi';
+import { FiShield, FiDatabase, FiLock, FiAward, FiLogOut } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected } = useDesktopAgentStore();
+  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected, logoutUser } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -100,6 +100,13 @@ export default function AgentHeader() {
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">THREATS</span>
             <span className={`text-[11px] font-bold ${threatCount > 0 ? 'text-red-500 animate-pulse text-shadow-glow' : 'text-emerald-400'}`}>{threatCount}</span>
           </div>
+          <button
+            onClick={() => logoutUser()}
+            className="ml-2 bg-red-950/20 border border-red-500/30 text-red-500 hover:bg-red-900/40 hover:text-red-400 p-1.5 rounded-md flex items-center justify-center transition-colors"
+            title="Disconnect Session"
+          >
+            <SafeIcon icon={FiLogOut} className="text-[12px]" />
+          </button>
         </div>
       </div>
     </header>

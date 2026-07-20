@@ -13,7 +13,13 @@ function App() {
 
   return (
     <div className="antialiased selection:bg-emerald-500/30">
-      {currentView === 'HUD' ? <MainHUD /> : <BatchIngressZone />}
+      {!walletConnected ? (
+        <LoginGateway/>
+      ) : currentView === 'HUD' ? (
+        <MainHUD/>
+      ) : (
+        <BatchIngressZone/>
+      )}
     </div>
   );
 }
