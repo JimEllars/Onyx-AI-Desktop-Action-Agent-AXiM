@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { aximCoreClient } from '../lib/supabaseClient.js';
 
 export const useDesktopAgentStore = create((set, get) => ({
-  walletConnected: false,
+  walletConnected: true,
   isLiveChannelConnected: false,
   currentView: 'HUD',
   cpuHistory: [],
