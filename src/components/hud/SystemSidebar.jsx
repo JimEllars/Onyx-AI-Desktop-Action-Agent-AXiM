@@ -1,12 +1,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FiCpu, FiGlobe, FiLayers } from 'react-icons/fi';
+import { FiCpu, FiGlobe, FiLayers, FiActivity } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const { cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog } = useDesktopAgentStore();
+  const { communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog } = useDesktopAgentStore();
 
 
 
@@ -16,11 +16,17 @@ export default function SystemSidebar() {
     return <span className="text-red-400 font-bold animate-pulse">[DEGRADED]</span>;
   };
 
+
   const stats = [
     { label: 'CPU LOAD', val: `${cpuLoad.toFixed(1)}%`, width: `${cpuLoad}%`, icon: FiCpu, color: 'text-emerald-400' },
     { label: 'MEM VOL', val: `${memoryUsage.toFixed(0)} MB`, width: `${(memoryUsage / 500) * 100}%`, icon: FiLayers, color: 'text-cyan-400' },
     { label: 'LATENCY', val: `${networkLatencyMs.toFixed(0)} ms`, width: `${(networkLatencyMs / 100) * 100}%`, icon: FiGlobe, color: 'text-amber-400' }
   ];
+
+  if (communicationMode !== 'TEXT') {
+    stats.push({ label: 'WEBRTC_AUDIO', val: '64 kbps', width: '64%', icon: FiActivity, color: 'text-indigo-400' });
+  }
+
 
   return (
     <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 space-y-6 backdrop-blur-md shadow-inner relative overflow-hidden flex-1 flex flex-col">
