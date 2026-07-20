@@ -13,7 +13,7 @@ function App() {
 
   return (
     <div className="antialiased selection:bg-emerald-500/30">
-      {true ? (currentView === 'HUD' ? <MainHUD /> : <BatchIngressZone />) : null}
+      {currentView === 'HUD' ? <MainHUD /> : <BatchIngressZone />}
     </div>
   );
 }

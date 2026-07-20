@@ -41,7 +41,17 @@ export const useDesktopAgentStore = create((set, get) => ({
 
   toggleAutopilot: () => set((state) => ({ autopilotActive: !state.autopilotActive })),
 
-  setCommunicationMode: (mode) => set({ communicationMode: mode }),
+  setCommunicationMode: (mode) => set((state) => {
+    const traceText = mode === 'AUDIO_ONLY'
+      ? '[CONNECT] Audio channel trunk active. Establishing secure voice proxy via Cloudflare Calls WebRTC gateway...'
+      : mode === 'DISCUSSION'
+      ? '[CONNECT] Multi-modal discussion loop activated. Synthetic audio-response bridge engaged...'
+      : '[SYSTEM] Reverting conversation link to baseline text-input channels.';
+    return {
+      communicationMode: mode,
+      actionLogs: [{ id: Date.now(), type: 'network', text: traceText, timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
+    };
+  }),
 
   addMessage: (msg) => set((state) => ({ 
     messages: [...state.messages, { ...msg, id: msg.id || Date.now(), timestamp: new Date() }]
@@ -206,6 +216,7 @@ export const useDesktopAgentStore = create((set, get) => ({
     networkLatencyMs: 0,
     systemStatus: 'READY',
     pendingApprovals: [],
+    communicationMode: 'TEXT',
     fleetNodes: [
       { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
       { id: '02', uid: 'AXIM-NODE-DFW-02', os: 'Secure Edge Browser', build: 'v3.5.2', status: '[AUTOPILOT_ACTIVE]', color: 'text-cyan-400' },
