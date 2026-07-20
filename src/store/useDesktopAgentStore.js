@@ -234,9 +234,11 @@ export const useDesktopAgentStore = create((set, get) => ({
     walletConnected: false,
     operatorAddress: null,
     operatorRole: null,
+    activeTaskId: null,
+    communicationMode: 'TEXT', // Revert voice trunks to baseline text on session logout
     systemStatus: 'AUTHENTICATING',
     actionLogs: [
-      { id: Date.now(), type: 'system', text: `[IDENTITY] Session teardown complete. SIWE credentials cleared.`, timestamp: new Date() },
+      { id: Date.now(), type: 'system', text: `[IDENTITY] Session teardown complete. SIWE credentials and active channels cleared.`, timestamp: new Date() },
       ...state.actionLogs
     ]
   })),

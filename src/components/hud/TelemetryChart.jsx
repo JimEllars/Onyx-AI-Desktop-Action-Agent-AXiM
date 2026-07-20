@@ -29,6 +29,13 @@ export default function TelemetryChart() {
     tooltip: {
       show: true,
       trigger: 'axis',
+      backgroundColor: 'rgba(15, 23, 42, 0.9)',
+      borderColor: '#334155',
+      borderWidth: 1,
+      textStyle: {
+        color: '#f8fafc',
+        fontSize: 11
+      },
       formatter: (params) => {
         let result = `<span style="color:#64748b;font-weight:bold;">[TELEMETRY_STREAM]</span><br/>`;
         params.forEach(param => {

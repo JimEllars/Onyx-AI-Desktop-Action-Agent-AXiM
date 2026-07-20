@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected, logoutUser } = useDesktopAgentStore();
+  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -75,6 +75,19 @@ export default function AgentHeader() {
         </div>
         
         <div className="flex gap-2">
+          <AnimatePresence>
+            {communicationMode !== 'TEXT' && (
+              <motion.div
+                onClick={() => setView('HUD')}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="cursor-pointer bg-indigo-950/40 border border-indigo-500/50 text-indigo-400 text-[9px] font-bold font-mono px-3 py-1.5 rounded flex items-center justify-center tracking-widest drop-shadow-[0_0_5px_rgba(99,102,241,0.5)] animate-pulse shadow-inner"
+              >
+                [VOICE_TRUNK_ACTIVE]
+              </motion.div>
+            )}
+          </AnimatePresence>
           {isLiveChannelConnected ? (
             <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 text-[9px] font-bold font-mono px-2 py-1.5 rounded flex flex-col items-center justify-center min-w-[75px] tracking-widest drop-shadow-[0_0_2px_rgba(16,185,129,0.4)]">
               [EDGE_MESH]
