@@ -216,7 +216,13 @@ export const useDesktopAgentStore = create((set, get) => ({
     get().addActionLog({ type: 'success', text: '[SUCCESS] [UPDATER] Automated binary update hot-patch applied cleanly to remote mesh node: AXIM-NODE-ORD-03. Fleet unified.' });
   },
 
-    clearCacheBlocks: () => set({
+    clearActionLogs: () => set({
+    actionLogs: [
+      { id: Date.now(), type: 'system', text: '[LEDGER_RESET] Action log buffer cleared by operator.', timestamp: new Date() }
+    ]
+  }),
+
+  clearCacheBlocks: () => set({
     cpuHistory: [],
     memoryHistory: [],
     latencyHistory: [],

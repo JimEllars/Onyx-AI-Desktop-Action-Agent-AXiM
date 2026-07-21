@@ -8,7 +8,8 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const { incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus } = useDesktopAgentStore();
+  const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
+  const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
     e.preventDefault();
@@ -35,6 +36,9 @@ export default function DropZone({ targetApplication }) {
     }
 
 
+    const payloadSizeKb = (new Blob([droppedText]).size / 1024).toFixed(1);
+    setCurrentPayloadSize(payloadSizeKb);
+
     // Asguard Interceptor Shield
     const lowerText = droppedText.toLowerCase();
     const forbiddenStrings = ['rm -rf', 'sudo', 'drop table', 'format c:'];
@@ -51,11 +55,11 @@ export default function DropZone({ targetApplication }) {
 
     try {
       await invoke('execute_batch_upload', { payload: JSON.stringify({ data: droppedText, target_app: targetApplication }) });
-      addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}]` });
+      addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}] // PAYLOAD_SIZE: ${payloadSizeKb} KB` });
     } catch (error) {
       console.warn('[BROWSER_SIMULATION] Ingestion captured into virtual local loop', error);
       incrementLocalBufferQueue();
-      addActionLog({ type: 'task', text: `Batch ingestion detected (fallback): [${targetApplication}]` });
+      addActionLog({ type: 'task', text: `Batch ingestion staged into virtual queue (depth: ${localQueueCount + 1}): [${targetApplication}] // PAYLOAD_SIZE: ${payloadSizeKb} KB` });
 
       if (targetApplication === 'green_machine') {
         addActionLog({ type: 'system', text: '[ENRICHMENT] Semantic parse routed affiliate/ledger records to Green Machine financial registry' });
@@ -85,7 +89,7 @@ export default function DropZone({ targetApplication }) {
           <>
             <div className="w-10 h-10 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin shadow-[0_0_15px_rgba(16,185,129,0.3)]"></div>
             <div className="text-center">
-              <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">PARSING_EDGE_INGRESS_CHUNKS...</p>
+              <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">PARSING_EDGE_INGRESS_CHUNKS ({currentPayloadSize} KB)...</p>
             </div>
           </>
         ) : (
