@@ -25,6 +25,14 @@ export default function ActionConsole({ className = "" }) {
   }, [actionLogs, logFilter]);
 
 
+
+  const handleExport = () => {
+    const exportedText = filteredLogs.map(log => `[${log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] [${log.type.toUpperCase()}] ${log.text}`).join('\n');
+    navigator.clipboard.writeText(exportedText).then(() => {
+      addActionLog({ type: 'system', text: `[LEDGER_EXPORT] Exported ${filteredLogs.length} audit log entries to clipboard.` });
+    });
+  };
+
   const toggleMcpExpansion = (id) => {
     setExpandedMcpIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
@@ -43,6 +51,14 @@ export default function ActionConsole({ className = "" }) {
       <div className="flex justify-between items-center border-b border-slate-800 pb-2 mb-4">
         <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Action Ledger</h3>
         <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors text-cyan-400 hover:text-cyan-300 border border-transparent hover:border-cyan-900/50 rounded cursor-pointer ml-1"
+            title="Copy filtered logs to clipboard"
+          >
+            [EXPORT]
+          </button>
+
           <button
             onClick={toggleAutoScroll}
             className={`text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors border-b ${
