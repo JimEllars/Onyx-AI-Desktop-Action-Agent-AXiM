@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
+  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, cloudflareEdgeNode, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -101,7 +101,8 @@ export default function AgentHeader() {
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">CF_CACHE</span>
             <span className={`text-[11px] font-bold ${cfCacheStatus === 'HIT' ? 'text-emerald-400' : cfCacheStatus === 'MISS' ? 'text-red-400' : 'text-amber-400'}`}>{cfCacheStatus}</span>
           </div>
-          <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px]">
+          <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px] cursor-help hover:border-purple-500/50 transition-colors"
+               title={`Cloudflare Ray ID: ${cfRayId} | Edge Ingress Node: ${cloudflareEdgeNode}`}>
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">RAY_ID</span>
             <span className="text-[11px] text-purple-400 font-bold uppercase">{cfRayId.substring(0, 8)}</span>
           </div>
