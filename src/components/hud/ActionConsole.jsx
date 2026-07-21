@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ActionConsole({ className = "" }) {
-  const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog, logFilter, setLogFilter, isAutoScrollEnabled, toggleAutoScroll } = useDesktopAgentStore();
+  const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog, logFilter, setLogFilter, isAutoScrollEnabled, toggleAutoScroll, clearActionLogs } = useDesktopAgentStore();
   const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
 
 
@@ -52,6 +52,13 @@ export default function ActionConsole({ className = "" }) {
             }`}
           >
             [AUTO-SCROLL: {isAutoScrollEnabled ? 'ON' : 'OFF'}]
+          </button>
+          <button
+            onClick={clearActionLogs}
+            className="text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors text-red-400 hover:text-red-300 border border-transparent hover:border-red-900/50 rounded cursor-pointer ml-1"
+            title="Clear active log buffer"
+          >
+            [CLEAR]
           </button>
           {['ALL', 'NET', 'SEC', 'SYS'].map(f => (
             <button
