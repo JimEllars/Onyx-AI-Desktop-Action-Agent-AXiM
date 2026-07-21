@@ -3,26 +3,26 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ActionConsole({ className = "" }) {
-  const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog } = useDesktopAgentStore();
+  const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog, logFilter, setLogFilter, isAutoScrollEnabled, toggleAutoScroll } = useDesktopAgentStore();
   const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
-  const [activeFilter, setActiveFilter] = React.useState('ALL');
+
 
   const filteredLogs = React.useMemo(() => {
-    if (activeFilter === 'ALL') return actionLogs;
+    if (logFilter === 'ALL') return actionLogs;
     return actionLogs.filter(log => {
       const t = log.text?.toLowerCase() || '';
-      if (activeFilter === 'NET') {
+      if (logFilter === 'NET') {
         return log.type === 'network' || t.includes('[connect]') || t.includes('[cloudflare_edge]');
       }
-      if (activeFilter === 'SEC') {
+      if (logFilter === 'SEC') {
         return log.type === 'fault' || log.type === 'error' || t.includes('[security]') || t.includes('[asguard_shield]') || t.includes('[fault]');
       }
-      if (activeFilter === 'SYS') {
+      if (logFilter === 'SYS') {
         return log.type === 'system' || log.type === 'task' || t.includes('[hitl]') || t.includes('[identity]');
       }
       return true;
     });
-  }, [actionLogs, activeFilter]);
+  }, [actionLogs, logFilter]);
 
 
   const toggleMcpExpansion = (id) => {
@@ -33,7 +33,9 @@ export default function ActionConsole({ className = "" }) {
   const logsEndRef = useRef(null);
 
   useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isAutoScrollEnabled) {
+      logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [actionLogs]);
 
   return (
@@ -41,12 +43,22 @@ export default function ActionConsole({ className = "" }) {
       <div className="flex justify-between items-center border-b border-slate-800 pb-2 mb-4">
         <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Action Ledger</h3>
         <div className="flex gap-2">
+          <button
+            onClick={toggleAutoScroll}
+            className={`text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors border-b ${
+              isAutoScrollEnabled
+                ? 'text-cyan-400 border-cyan-500 font-bold'
+                : 'text-slate-500 border-transparent hover:text-slate-300'
+            }`}
+          >
+            [AUTO-SCROLL: {isAutoScrollEnabled ? 'ON' : 'OFF'}]
+          </button>
           {['ALL', 'NET', 'SEC', 'SYS'].map(f => (
             <button
               key={f}
-              onClick={() => setActiveFilter(f)}
+              onClick={() => setLogFilter(f)}
               className={`text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors ${
-                activeFilter === f
+                logFilter === f
                   ? 'text-emerald-400 border-b border-emerald-500 font-bold'
                   : 'text-slate-500 hover:text-slate-300'
               }`}
