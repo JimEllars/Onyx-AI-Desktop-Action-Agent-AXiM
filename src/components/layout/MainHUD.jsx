@@ -7,7 +7,7 @@ import DropZone from '../admin/DropZone';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function MainHUD() {
-  const { localNodeId, isLiveChannelConnected } = useDesktopAgentStore();
+  const { localNodeId, isLiveChannelConnected, setView } = useDesktopAgentStore();
   return (
     <div className="h-screen w-full bg-slate-950 text-slate-100 overflow-hidden flex flex-col font-mono selection:bg-emerald-500/30 relative">
       {/* Background Effects */}
@@ -40,6 +40,12 @@ export default function MainHUD() {
                 ) : (
                   <span className="text-amber-500 font-bold">[AUTOPILOT_STANDALONE]</span>
                 )}
+                <button
+                  onClick={() => setView('INGRESS')}
+                  className="mt-2 w-full text-[8px] font-mono font-bold text-emerald-400 bg-emerald-950/20 border border-emerald-500/30 hover:bg-emerald-900/40 hover:border-emerald-400 px-2 py-1 rounded transition-colors cursor-pointer text-center uppercase"
+                >
+                  [OPEN_INGRESS_PANEL]
+                </button>
               </div>
               <div className="space-y-4">
                 <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3">Ingestion Node</h3>
