@@ -6,7 +6,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function BatchIngressZone() {
   const [targetApplication, setTargetApp] = useState('green_machine');
-  const { cfCacheStatus, cfRayId, fleetNodes, addActionLog } = useDesktopAgentStore();
+  const { cfCacheStatus, cfRayId, fleetNodes, addActionLog, localQueueCount } = useDesktopAgentStore();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8 font-mono selection:bg-emerald-500/30">
@@ -35,6 +35,11 @@ export default function BatchIngressZone() {
                 <option value="asguard_soc">Asguard WAF Intelligence</option>
               </select>
               <div className="hidden sm:flex items-center gap-4 px-2 border-l border-slate-800">
+                <div className="flex flex-col">
+                  <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">STAGED_QUEUE</span>
+                  <span className="text-[10px] text-cyan-400 font-bold">{localQueueCount}</span>
+                </div>
+
                 <div className="flex flex-col">
                   <span className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">CF_CACHE</span>
                   <span className={`text-[10px] font-bold ${cfCacheStatus === 'HIT' ? 'text-emerald-400' : cfCacheStatus === 'MISS' ? 'text-red-400' : 'text-amber-400'}`}>{cfCacheStatus}</span>

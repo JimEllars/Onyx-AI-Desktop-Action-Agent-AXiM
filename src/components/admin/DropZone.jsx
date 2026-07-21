@@ -9,6 +9,7 @@ export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
+  const [detectedFormat, setDetectedFormat] = useState('RAW');
   const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
@@ -36,6 +37,15 @@ export default function DropZone({ targetApplication }) {
     }
 
 
+    let format = 'RAW';
+    const trimmedText = droppedText.trim();
+    if (trimmedText.startsWith('{') || trimmedText.startsWith('[')) {
+      format = 'JSON';
+    } else if (trimmedText.includes(',') && (trimmedText.includes('\n') || trimmedText.includes('\r\n'))) {
+      format = 'CSV';
+    }
+    setDetectedFormat(format);
+
     const payloadSizeKb = (new Blob([droppedText]).size / 1024).toFixed(1);
     setCurrentPayloadSize(payloadSizeKb);
 
@@ -55,7 +65,7 @@ export default function DropZone({ targetApplication }) {
 
     try {
       await invoke('execute_batch_upload', { payload: JSON.stringify({ data: droppedText, target_app: targetApplication }) });
-      addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}] // PAYLOAD_SIZE: ${payloadSizeKb} KB` });
+      addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}] // FORMAT: [${format}] // PAYLOAD_SIZE: ${payloadSizeKb} KB` });
     } catch (error) {
       console.warn('[BROWSER_SIMULATION] Ingestion captured into virtual local loop', error);
       incrementLocalBufferQueue();
@@ -89,7 +99,7 @@ export default function DropZone({ targetApplication }) {
           <>
             <div className="w-10 h-10 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin shadow-[0_0_15px_rgba(16,185,129,0.3)]"></div>
             <div className="text-center">
-              <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">PARSING_EDGE_INGRESS_CHUNKS ({currentPayloadSize} KB)...</p>
+              <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">PARSING_EDGE_INGRESS_CHUNKS [{detectedFormat}] ({currentPayloadSize} KB)...</p>
             </div>
           </>
         ) : (
