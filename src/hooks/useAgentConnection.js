@@ -3,7 +3,7 @@ import { aximCoreClient } from '../lib/supabaseClient.js';
 import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 
 export function useAgentConnection() {
-  const { setLiveTelemetry, walletConnected, setLiveChannelConnected } = useDesktopAgentStore();
+  const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog } = useDesktopAgentStore();
 
   useEffect(() => {
     if (!walletConnected) return;
@@ -24,9 +24,11 @@ export function useAgentConnection() {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('[AGENT_CONNECTION] Successfully subscribed to agent_telemetry_stream.');
+          addActionLog({ type: 'network', text: '[CONNECT] [CLOUDFLARE_EDGE] Real-time agent_telemetry_stream channel subscribed successfully.' });
           setLiveChannelConnected(true);
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
           console.error('[AGENT_CONNECTION] Channel subscription error or closed:', status);
+          addActionLog({ type: 'warning', text: '[DISCONNECT] [CLOUDFLARE_EDGE] Real-time telemetry stream dropped. Falling back to local autopilot telemetry.' });
           setLiveChannelConnected(false);
         }
       });
@@ -34,5 +36,5 @@ export function useAgentConnection() {
     return () => {
       aximCoreClient.removeChannel(channel);
     };
-  }, [setLiveTelemetry, walletConnected, setLiveChannelConnected]);
+  }, [setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog]);
 }

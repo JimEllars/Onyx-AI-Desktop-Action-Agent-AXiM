@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiCpu, FiGlobe, FiLayers, FiActivity } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
@@ -6,9 +6,20 @@ import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
+  const [audioBitrate, setAudioBitrate] = useState('64 kbps');
   const { communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog } = useDesktopAgentStore();
 
 
+
+
+  const cycleAudioBitrate = () => {
+    let nextBitrate;
+    if (audioBitrate === '64 kbps') nextBitrate = '128 kbps';
+    else if (audioBitrate === '128 kbps') nextBitrate = '256 kbps (HD)';
+    else nextBitrate = '64 kbps';
+    setAudioBitrate(nextBitrate);
+    addActionLog({ type: 'system', text: `[WEBRTC_AUDIO] Stream quality adjusted. Active bitrate: ${nextBitrate} over Cloudflare Calls.` });
+  };
 
   const getLatencyToken = (latency) => {
     if (latency < 30) return <span className="text-emerald-500 font-bold">[EXCELLENT]</span>;
@@ -24,7 +35,8 @@ export default function SystemSidebar() {
   ];
 
   if (communicationMode !== 'TEXT') {
-    stats.push({ label: 'WEBRTC_AUDIO', val: '64 kbps', width: '64%', icon: FiActivity, color: 'text-indigo-400' });
+    const widthVal = audioBitrate === '64 kbps' ? '64%' : audioBitrate === '128 kbps' ? '80%' : '100%';
+    stats.push({ label: 'WEBRTC_AUDIO', val: audioBitrate, width: widthVal, icon: FiActivity, color: 'text-indigo-400' });
   }
 
 
@@ -38,25 +50,33 @@ export default function SystemSidebar() {
       </h3>
       
       <div className="space-y-5 shrink-0">
-        {stats.map((stat, i) => (
-          <div key={i} className="space-y-2">
-            <div className="flex items-center justify-between group">
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-slate-950 border border-slate-800 rounded">
-                  <SafeIcon icon={stat.icon} className={`text-xs ${stat.color}`} />
+        {stats.map((stat, i) => {
+          const isWebRTC = stat.label === 'WEBRTC_AUDIO';
+          return (
+            <div
+              key={i}
+              className={`space-y-2 ${isWebRTC ? 'cursor-pointer hover:border-indigo-500/50 transition-colors border border-transparent -m-1 p-1 rounded' : ''}`}
+              onClick={isWebRTC ? cycleAudioBitrate : undefined}
+              title={isWebRTC ? 'Click to cycle WebRTC audio stream quality' : undefined}
+            >
+              <div className="flex items-center justify-between group">
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 bg-slate-950 border border-slate-800 rounded">
+                    <SafeIcon icon={stat.icon} className={`text-xs ${stat.color}`} />
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-bold">{stat.label}</span>
                 </div>
-                <span className="text-[10px] text-slate-400 font-bold">{stat.label}</span>
+                <span className="text-[10px] font-bold text-slate-200 font-mono tracking-tighter">{stat.label === "LATENCY" ? <>{stat.val} {getLatencyToken(networkLatencyMs)}</> : stat.val}</span>
               </div>
-              <span className="text-[10px] font-bold text-slate-200 font-mono tracking-tighter">{stat.label === "LATENCY" ? <>{stat.val} {getLatencyToken(networkLatencyMs)}</> : stat.val}</span>
+              <div className="h-0.5 bg-slate-800/50 rounded-full overflow-hidden">
+                <motion.div
+                  animate={{ width: stat.width }}
+                  className={`h-full ${stat.color.replace('text', 'bg')} opacity-50`}
+                />
+              </div>
             </div>
-            <div className="h-0.5 bg-slate-800/50 rounded-full overflow-hidden">
-              <motion.div 
-                animate={{ width: stat.width }}
-                className={`h-full ${stat.color.replace('text', 'bg')} opacity-50`}
-              />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
 
