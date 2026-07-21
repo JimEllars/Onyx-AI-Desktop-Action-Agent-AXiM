@@ -5,6 +5,25 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function ActionConsole({ className = "" }) {
   const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog } = useDesktopAgentStore();
   const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
+  const [activeFilter, setActiveFilter] = React.useState('ALL');
+
+  const filteredLogs = React.useMemo(() => {
+    if (activeFilter === 'ALL') return actionLogs;
+    return actionLogs.filter(log => {
+      const t = log.text?.toLowerCase() || '';
+      if (activeFilter === 'NET') {
+        return log.type === 'network' || t.includes('[connect]') || t.includes('[cloudflare_edge]');
+      }
+      if (activeFilter === 'SEC') {
+        return log.type === 'fault' || log.type === 'error' || t.includes('[security]') || t.includes('[asguard_shield]') || t.includes('[fault]');
+      }
+      if (activeFilter === 'SYS') {
+        return log.type === 'system' || log.type === 'task' || t.includes('[hitl]') || t.includes('[identity]');
+      }
+      return true;
+    });
+  }, [actionLogs, activeFilter]);
+
 
   const toggleMcpExpansion = (id) => {
     setExpandedMcpIds(prev =>
@@ -19,13 +38,40 @@ export default function ActionConsole({ className = "" }) {
 
   return (
     <div className={`bg-slate-900/40 border border-slate-800 rounded-xl p-6 flex flex-col min-h-0 backdrop-blur-sm ${className}`}>
-      <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-2 mb-4">Action Ledger</h3>
+      <div className="flex justify-between items-center border-b border-slate-800 pb-2 mb-4">
+        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Action Ledger</h3>
+        <div className="flex gap-2">
+          {['ALL', 'NET', 'SEC', 'SYS'].map(f => (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors ${
+                activeFilter === f
+                  ? 'text-emerald-400 border-b border-emerald-500 font-bold'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              [{f}]
+            </button>
+          ))}
+        </div>
+      </div>
       {/* Setting flex-col-reverse so that standard prepend order makes items flow bottom up if needed, or just let it scroll normally */}
       <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col max-h-[140px] min-h-[100px] pr-1">
         <div className="mt-auto flex flex-col space-y-3">
         <AnimatePresence initial={false}>
+          {filteredLogs.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="bg-slate-950/40 border border-slate-800/60 rounded p-4 text-center text-[9px] font-mono text-slate-600 mt-2"
+            >
+              [LEDGER_IDLE] No active logs recorded for selected filter scope.
+            </motion.div>
+          )}
           {/* actionLogs has the newest log at index 0. We want the oldest at the top and newest at the bottom if we scroll to the bottom. Let's reverse it visually or reverse the array. Reversing the array is fine. */}
-          {[...actionLogs].reverse().map((log) => {
+          {[...filteredLogs].reverse().map((log) => {
             // Use simple regex or includes to find error syntax
             const isError = log.text?.includes('[ERROR]');
             const isFault = log.text?.includes('[FAULT]');
