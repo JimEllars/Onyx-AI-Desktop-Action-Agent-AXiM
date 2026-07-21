@@ -6,7 +6,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function BatchIngressZone() {
   const [targetApplication, setTargetApp] = useState('green_machine');
-  const { cfCacheStatus, cfRayId, fleetNodes } = useDesktopAgentStore();
+  const { cfCacheStatus, cfRayId, fleetNodes, addActionLog } = useDesktopAgentStore();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8 font-mono selection:bg-emerald-500/30">
@@ -20,7 +20,14 @@ export default function BatchIngressZone() {
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Enrichment Route Vector:</span>
               <select 
                 value={targetApplication} 
-                onChange={(e) => setTargetApp(e.target.value)}
+                onChange={(e) => {
+                  const selectedRoute = e.target.value;
+                  setTargetApp(selectedRoute);
+                  addActionLog({
+                    type: 'network',
+                    text: `[ENRICHMENT_ROUTE] Selected ingress vector route updated: [${selectedRoute.toUpperCase()}] via Cloudflare Workers.`
+                  });
+                }}
                 className="w-full sm:w-auto bg-slate-950 text-emerald-400 text-xs font-bold border border-slate-800 px-3 py-2 rounded outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 flex-1 cursor-pointer transition-colors"
               >
                 <option value="green_machine">The Green Machine (Ledger Sync)</option>
