@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { FiCpu, FiGlobe, FiLayers, FiActivity } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
@@ -6,8 +6,7 @@ import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function SystemSidebar() {
-  const [audioBitrate, setAudioBitrate] = useState('64 kbps');
-  const { communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog } = useDesktopAgentStore();
+  const { communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
 
 
 
@@ -18,7 +17,6 @@ export default function SystemSidebar() {
     else if (audioBitrate === '128 kbps') nextBitrate = '256 kbps (HD)';
     else nextBitrate = '64 kbps';
     setAudioBitrate(nextBitrate);
-    addActionLog({ type: 'system', text: `[WEBRTC_AUDIO] Stream quality adjusted. Active bitrate: ${nextBitrate} over Cloudflare Calls.` });
   };
 
   const getLatencyToken = (latency) => {

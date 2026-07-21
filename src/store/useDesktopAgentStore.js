@@ -35,11 +35,20 @@ export const useDesktopAgentStore = create((set, get) => ({
   messages: [
     { id: 1, role: 'assistant', text: 'OnyX Mk3 Online. Vector systems initialized. Awaiting architectural commands, Sir.', timestamp: new Date() }
   ],
+  audioBitrate: '64 kbps',
   actionLogs: [
     { id: 1, type: 'system', text: 'Kernel loaded. Arbitrum SIWE handshake complete.', timestamp: new Date() }
   ],
 
   toggleAutopilot: () => set((state) => ({ autopilotActive: !state.autopilotActive })),
+
+  setAudioBitrate: (bitrate) => set((state) => ({
+    audioBitrate: bitrate,
+    actionLogs: [
+      { id: Date.now(), type: 'system', text: `[WEBRTC_AUDIO] Stream quality adjusted. Active bitrate: ${bitrate} over Cloudflare Calls.`, timestamp: new Date() },
+      ...state.actionLogs
+    ].slice(0, 50)
+  })),
 
   setCommunicationMode: (mode) => set((state) => {
     const traceText = mode === 'AUDIO_ONLY'
