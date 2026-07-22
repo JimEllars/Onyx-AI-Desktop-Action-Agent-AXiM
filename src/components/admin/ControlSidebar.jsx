@@ -74,6 +74,21 @@ export default function ControlSidebar() {
         </button>
 
         <button
+          onClick={() => {
+            const count = localQueueCount;
+            clearLocalBufferQueue();
+            addActionLog({
+              type: 'system',
+              text: `[QUEUE_CLEAR] Discarded ${count} staged virtual buffer item(s). Queue reset to 0.`
+            });
+          }}
+          disabled={localQueueCount === 0 || systemStatus === 'ERROR'}
+          className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${localQueueCount === 0 || systemStatus === 'ERROR' ? 'bg-slate-950/50 border-slate-900 text-slate-700 cursor-not-allowed' : 'bg-slate-950 border-slate-800 hover:border-amber-900 text-amber-400 hover:shadow-[0_0_10px_rgba(245,158,11,0.1)]'}`}
+        >
+          [CLEAR_STAGED_QUEUE]
+        </button>
+
+        <button
           onClick={handleClearCache}
           className="w-full flex items-center justify-center gap-3 bg-slate-950 hover:bg-slate-900 border border-slate-800 px-4 py-3 text-xs text-amber-500 font-bold rounded transition-all duration-150 hover:border-amber-900 hover:shadow-[0_0_10px_rgba(245,158,11,0.1)]"
         >

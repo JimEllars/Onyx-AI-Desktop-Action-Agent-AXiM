@@ -72,6 +72,14 @@ export default function BatchIngressZone() {
 
           <ControlSidebar />
         </div>
+
+        <footer className="mt-8 flex justify-between items-center text-[8px] text-slate-600 tracking-[0.3em] font-bold uppercase border-t border-slate-900 pt-4">
+          <span>OnyX Mk3.5.2 // Build_7112026</span>
+          <div className="flex gap-4">
+            <span className="text-emerald-500/50 underline">System Integrity: 100%</span>
+            <span>AXiM Corporate Systems</span>
+          </div>
+        </footer>
       </div>
     </div>
   );
