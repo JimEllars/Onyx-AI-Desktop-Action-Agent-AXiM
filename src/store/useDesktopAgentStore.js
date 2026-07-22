@@ -84,9 +84,43 @@ export const useDesktopAgentStore = create((set, get) => ({
     };
   }),
 
-  approveAction: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
+  approveAction: async (id) => {
+    const { operatorAddress } = get();
+    set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) }));
+    get().addActionLog({ type: "system", text: `[HITL] Operator signature validated. Resuming onyx_mk3 MCP workflow execution thread for task node: ${id}` });
 
-  rejectAction: (id) => set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) })),
+    try {
+      await aximCoreClient
+        .from("hitl_audit_logs")
+        .update({
+          status: "APPROVED",
+          resolved_at: new Date().toISOString(),
+          resolved_by: operatorAddress
+        })
+        .eq("id", id);
+    } catch (e) {
+      get().addActionLog({ type: "error", text: `[HITL] Edge database audit persistence failed for node ${id}: ${e.message}` });
+    }
+  },
+
+  rejectAction: async (id) => {
+    const { operatorAddress } = get();
+    set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) }));
+    get().addActionLog({ type: "error", text: `[HITL] Operator rejected proposal packet. Terminating execution loop for node: ${id}` });
+
+    try {
+      await aximCoreClient
+        .from("hitl_audit_logs")
+        .update({
+          status: "REJECTED",
+          resolved_at: new Date().toISOString(),
+          resolved_by: operatorAddress
+        })
+        .eq("id", id);
+    } catch (e) {
+      get().addActionLog({ type: "error", text: `[HITL] Edge database audit persistence failed for node ${id}: ${e.message}` });
+    }
+  },
 
   addPendingApproval: (approval) => set((state) => ({
     pendingApprovals: [...state.pendingApprovals, approval]

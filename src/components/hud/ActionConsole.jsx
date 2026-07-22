@@ -204,7 +204,6 @@ export default function ActionConsole({ className = "" }) {
                 <button
                   onClick={() => {
                     approveAction(approval.id);
-                    addActionLog({ type: 'system', text: `[HITL] Operator signature validated. Resuming onyx_mk3 MCP workflow execution thread for task node: ${approval.id}` });
                   }}
                   className="px-3 py-1.5 bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors rounded text-[9px]"
                 >
@@ -213,7 +212,6 @@ export default function ActionConsole({ className = "" }) {
                 <button
                   onClick={() => {
                     rejectAction(approval.id);
-                    addActionLog({ type: 'error', text: `[HITL] Operator rejected proposal packet. Terminating execution loop for node: ${approval.id}` });
                   }}
                   className="px-3 py-1.5 bg-red-950/30 border border-red-500/50 text-red-400 hover:bg-red-900/50 hover:text-red-300 transition-colors rounded text-[9px]"
                 >

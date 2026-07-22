@@ -1,3 +1,4 @@
+import { aximCoreClient } from "../../lib/supabaseClient.js";
 import React, { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
@@ -18,20 +19,23 @@ export default function DropZone({ targetApplication }) {
     updateCloudflareMetrics();
 
     let droppedText = '';
+    let droppedFile = null;
+
     if (e.dataTransfer.items) {
       for (let i = 0; i < e.dataTransfer.items.length; i++) {
         if (e.dataTransfer.items[i].kind === 'string' && e.dataTransfer.items[i].type.match('^text/plain')) {
           droppedText = await new Promise(resolve => e.dataTransfer.items[i].getAsString(resolve));
           break;
         } else if (e.dataTransfer.items[i].kind === 'file') {
-          const file = e.dataTransfer.items[i].getAsFile();
-          droppedText = await file.text();
+          droppedFile = e.dataTransfer.items[i].getAsFile();
+          droppedText = await droppedFile.text();
           break;
         }
       }
     } else {
       for (let i = 0; i < e.dataTransfer.files.length; i++) {
-        droppedText = await e.dataTransfer.files[i].text();
+        droppedFile = e.dataTransfer.files[i];
+        droppedText = await droppedFile.text();
         break;
       }
     }
@@ -64,10 +68,26 @@ export default function DropZone({ targetApplication }) {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      await invoke('execute_batch_upload', { payload: JSON.stringify({ data: droppedText, target_app: targetApplication }) });
-      addActionLog({ type: 'task', text: `Batch ingestion successful: [${targetApplication}] // FORMAT: [${format}] // PAYLOAD_SIZE: ${payloadSizeKb} KB` });
+      const formData = new FormData();
+      if (droppedFile) {
+        formData.append('document', droppedFile);
+      } else {
+        const blob = new Blob([droppedText], { type: 'text/plain' });
+        formData.append('document', blob, `upload_${Date.now()}.${format.toLowerCase()}`);
+      }
+      formData.append('target_app', targetApplication);
+
+      const { data, error } = await aximCoreClient.functions.invoke('knowledge-ingest', {
+        body: formData,
+      });
+
+      if (error) throw error;
+
+      const filename = droppedFile ? droppedFile.name : `upload_${Date.now()}.${format.toLowerCase()}`;
+      addActionLog({ type: 'success', text: `[INGRESS] Document [${filename}] successfully processed and vectorized into central RAG Memory Banks.` });
     } catch (error) {
       console.warn('[BROWSER_SIMULATION] Ingestion captured into virtual local loop', error);
+      addActionLog({ type: 'fault', text: `[FAULT] Edge ingestion failed. Captured into virtual local loop.` });
       incrementLocalBufferQueue();
       addActionLog({ type: 'task', text: `Batch ingestion staged into virtual queue (depth: ${localQueueCount + 1}): [${targetApplication}] // PAYLOAD_SIZE: ${payloadSizeKb} KB` });
 
