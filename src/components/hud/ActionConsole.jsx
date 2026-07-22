@@ -5,6 +5,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function ActionConsole({ className = "" }) {
   const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog, logFilter, setLogFilter, isAutoScrollEnabled, toggleAutoScroll, clearActionLogs } = useDesktopAgentStore();
   const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
+  const [isCopied, setIsCopied] = React.useState(false);
 
 
   const filteredLogs = React.useMemo(() => {
@@ -30,6 +31,8 @@ export default function ActionConsole({ className = "" }) {
     const exportedText = filteredLogs.map(log => `[${log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}] [${log.type.toUpperCase()}] ${log.text}`).join('\n');
     navigator.clipboard.writeText(exportedText).then(() => {
       addActionLog({ type: 'system', text: `[LEDGER_EXPORT] Exported ${filteredLogs.length} audit log entries to clipboard.` });
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 1500);
     });
   };
 
@@ -53,10 +56,14 @@ export default function ActionConsole({ className = "" }) {
         <div className="flex gap-2">
           <button
             onClick={handleExport}
-            className="text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors text-cyan-400 hover:text-cyan-300 border border-transparent hover:border-cyan-900/50 rounded cursor-pointer ml-1"
+            className={`text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors border border-transparent rounded cursor-pointer ml-1 ${
+              isCopied
+                ? 'text-emerald-400 border-emerald-500/50 bg-emerald-950/20 font-bold'
+                : 'text-cyan-400 hover:text-cyan-300 hover:border-cyan-900/50'
+            }`}
             title="Copy filtered logs to clipboard"
           >
-            [EXPORT]
+            {isCopied ? '[COPIED!]' : '[EXPORT]'}
           </button>
 
           <button
