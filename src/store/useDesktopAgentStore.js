@@ -11,7 +11,7 @@ export const useDesktopAgentStore = create((set, get) => ({
   operatorAddress: "0x742d...444",
   operatorRole: null,
   activeTaskId: null,
-  localQueueCount: 0,
+  localQueueCount: 0, // Force buffer queue to 0 on emergency cache wipe
   threatCount: 0,
   networkLatencyMs: 24,
   systemStatus: 'AUTHENTICATING',
@@ -226,7 +226,7 @@ export const useDesktopAgentStore = create((set, get) => ({
     cpuHistory: [],
     memoryHistory: [],
     latencyHistory: [],
-    localQueueCount: 0,
+    localQueueCount: 0, // Force buffer queue to 0 on emergency cache wipe
     threatCount: 0,
     cpuLoad: 0,
     memoryUsage: 0,
