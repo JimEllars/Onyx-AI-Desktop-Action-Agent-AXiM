@@ -9,6 +9,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [conversionStatus, setConversionStatus] = useState('');
   const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
   const [detectedFormat, setDetectedFormat] = useState('RAW');
   const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus } = useDesktopAgentStore();
@@ -65,14 +66,41 @@ export default function DropZone({ targetApplication }) {
     }
 
     setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
+
+    let processedFile = droppedFile;
+    let processedText = droppedText;
+    const filename = droppedFile ? droppedFile.name : `upload_${Date.now()}.${format.toLowerCase()}`;
+    const needsConversion = /\.(pdf|docx|html|png|jpeg|jpg)$/i.test(filename);
+
+    if (needsConversion && droppedFile) {
+      setConversionStatus(`[WORKERS_AI] Converting [${filename}] to semantic Markdown...`);
+      try {
+        const conversionFormData = new FormData();
+        conversionFormData.append('file', droppedFile);
+
+        const response = await fetch('/v1/ai/tomarkdown', {
+          method: 'POST',
+          body: conversionFormData
+        });
+        if (response.ok) {
+          processedText = await response.text();
+          processedFile = new File([processedText], `${filename}.md`, { type: 'text/markdown' });
+          format = 'MARKDOWN';
+        }
+      } catch (err) {
+        console.warn('Edge conversion failed', err);
+      }
+      setConversionStatus('');
+    } else {
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
 
     try {
       const formData = new FormData();
-      if (droppedFile) {
-        formData.append('document', droppedFile);
+      if (processedFile) {
+        formData.append('document', processedFile);
       } else {
-        const blob = new Blob([droppedText], { type: 'text/plain' });
+        const blob = new Blob([processedText], { type: 'text/plain' });
         formData.append('document', blob, `upload_${Date.now()}.${format.toLowerCase()}`);
       }
       formData.append('target_app', targetApplication);
@@ -119,7 +147,9 @@ export default function DropZone({ targetApplication }) {
           <>
             <div className="w-10 h-10 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin shadow-[0_0_15px_rgba(16,185,129,0.3)]"></div>
             <div className="text-center">
-              <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">PARSING_EDGE_INGRESS_CHUNKS [{detectedFormat}] ({currentPayloadSize} KB)...</p>
+              <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">
+                {conversionStatus || `PARSING_EDGE_INGRESS_CHUNKS [${detectedFormat}] (${currentPayloadSize} KB)...`}
+              </p>
             </div>
           </>
         ) : (
