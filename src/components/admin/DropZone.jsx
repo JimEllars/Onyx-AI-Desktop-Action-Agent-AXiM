@@ -12,7 +12,7 @@ export default function DropZone({ targetApplication }) {
   const [conversionStatus, setConversionStatus] = useState('');
   const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
   const [detectedFormat, setDetectedFormat] = useState('RAW');
-  const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus } = useDesktopAgentStore();
+  const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus, isLiveChannelConnected } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
     e.preventDefault();
@@ -159,7 +159,13 @@ export default function DropZone({ targetApplication }) {
             </div>
             <div className="text-center">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{systemStatus === 'ERROR' ? 'NODE WORKLOAD SUSPENDED' : 'Drop Command Frame'}</p>
-              <p className="text-[8px] text-slate-600 mt-1">{systemStatus === 'ERROR' ? 'Clear local out-of-band cache blocks to restore ingestion channels' : 'JSON / CSV / RAW'}</p>
+              <p className={`text-[8px] mt-1 font-bold tracking-wider ${isLiveChannelConnected ? 'text-slate-600' : 'text-amber-500/80'}`}>
+       {systemStatus === 'ERROR'
+         ? 'Clear local out-of-band cache blocks to restore ingestion channels'
+         : isLiveChannelConnected
+           ? 'JSON / CSV / RAW'
+           : '[OFFLINE] Payloads will queue to virtual local buffer'}
+     </p>
               {systemStatus === 'ERROR' && (
                 <span className="text-[9px] text-amber-500 font-bold tracking-widest uppercase animate-pulse mt-2 block">
                   [GATEWAY_ALERT] Data stream propagation frozen by Asguard Security Shield.

@@ -23,7 +23,7 @@ export const getWorkersAiToolPayload = (userPrompt) => ({
 
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode, operatorAddress } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode, operatorAddress, autopilotActive } = useDesktopAgentStore();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -257,7 +257,14 @@ export default function ChatInterface() {
             [SECURITY NOTICE] Out-of-band terminal loop blocked by Asguard Interceptor Shield. Review the action ledger console to clear hardware boundaries.
           </div>
         )}
+
         <div className="relative flex items-center">
+          {!autopilotActive && (
+            <div className="absolute -top-10 right-4 bg-amber-950/40 border border-amber-900/50 rounded px-3 py-1 text-amber-500 text-[10px] font-mono font-bold tracking-widest uppercase animate-pulse shadow-md backdrop-blur-sm z-20">
+              [MANUAL_OVERRIDE_ACTIVE] Background Swarm Paused
+            </div>
+          )}
+
           {communicationMode === 'AUDIO_ONLY' ? (
             <div className="bg-amber-950/10 border border-dashed border-amber-500/30 rounded-xl p-4 w-full text-center text-amber-500 font-mono text-xs">
               <div className="border border-slate-800 text-slate-500 font-mono text-[9px] tracking-widest px-2 py-1 bg-slate-950 rounded mb-2 inline-block uppercase select-all">
