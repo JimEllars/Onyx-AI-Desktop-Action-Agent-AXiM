@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, cloudflareEdgeNode, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
+  const { clearThreats,  localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, cloudflareEdgeNode, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
@@ -110,7 +110,10 @@ export default function AgentHeader() {
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">QUEUE</span>
             <span className="text-[11px] text-cyan-400 font-bold">{localQueueCount}</span>
           </div>
-          <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px]">
+          <div
+            onClick={() => clearThreats()}
+            title="Acknowledge & Clear WAF Threats"
+            className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px] cursor-pointer hover:border-red-500/50 transition-colors">
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">THREATS</span>
             <span className={`text-[11px] font-bold ${threatCount > 0 ? 'text-red-500 animate-pulse text-shadow-glow' : 'text-emerald-400'}`}>{threatCount}</span>
           </div>

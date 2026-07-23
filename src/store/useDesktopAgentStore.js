@@ -42,6 +42,15 @@ export const useDesktopAgentStore = create((set, get) => ({
     { id: 1, type: 'system', text: 'Kernel loaded. Arbitrum SIWE handshake complete.', timestamp: new Date() }
   ],
 
+  clearThreats: () => set((state) => ({
+    threatCount: 0,
+    actionLogs: [{ id: Date.now(), type: "system", text: "[SECURITY] Administrator acknowledged WAF threat intercept logs. Counters reset.", timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
+  })),
+  wafStrictMode: true,
+  toggleWafMode: () => set((state) => ({
+    wafStrictMode: !state.wafStrictMode,
+    actionLogs: [{ id: Date.now(), type: "system", text: `[SECURITY] Cloudflare WAF protection mode shifted to: ${!state.wafStrictMode ? "STRICT" : "MONITOR"}.`, timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
+  })),
   toggleAutopilot: () => set((state) => ({ autopilotActive: !state.autopilotActive })),
 
   setAudioBitrate: (bitrate) => set((state) => ({
