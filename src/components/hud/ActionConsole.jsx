@@ -56,14 +56,14 @@ export default function ActionConsole({ className = "" }) {
         <div className="flex gap-2">
           <button
             onClick={handleExport}
-            className={`text-[9px] uppercase tracking-widest px-1 py-0.5 transition-colors border border-transparent rounded cursor-pointer ml-1 ${
+            className={`text-[9px] uppercase tracking-widest transition-colors border rounded cursor-pointer ml-1 flex items-center justify-center w-[90px] h-[22px] ${
               isCopied
-                ? 'text-emerald-400 border-emerald-500/50 bg-emerald-950/20 font-bold'
-                : 'text-cyan-400 hover:text-cyan-300 hover:border-cyan-900/50'
+                ? 'text-emerald-400 border-emerald-500 bg-emerald-950/20 font-bold'
+                : 'text-cyan-400 border-transparent hover:text-cyan-300 hover:border-cyan-900/50'
             }`}
             title="Copy filtered logs to clipboard"
           >
-            {isCopied ? '[COPIED!]' : '[EXPORT]'}
+            {isCopied ? '[COPIED]' : '[EXPORT_LOGS]'}
           </button>
 
           <button

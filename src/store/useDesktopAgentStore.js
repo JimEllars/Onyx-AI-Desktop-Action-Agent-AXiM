@@ -15,6 +15,7 @@ export const useDesktopAgentStore = create((set, get) => ({
   threatCount: 0,
   networkLatencyMs: 24,
   systemStatus: 'AUTHENTICATING',
+  targetApplication: 'green_machine',
   communicationMode: 'TEXT',
   localNodeId: 'AXIM-NODE-LAX-01',
   autopilotActive: true,
@@ -241,7 +242,25 @@ export const useDesktopAgentStore = create((set, get) => ({
         text: '[FAULT] [WAF_ALERT] Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.',
         timestamp: new Date()
       };
-      currentActionLogs = [securityLog, ...currentActionLogs].slice(0, 50);
+
+      try {
+        aximCoreClient.functions.invoke('notify-email', {
+          body: {
+            operator: get().operatorAddress,
+            resolution: 'THREAT_DETECTED',
+            details: 'Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.'
+          }
+        });
+        const emailLog = {
+          id: Date.now() + 1,
+          type: 'network',
+          text: `[EMAIL_DISPATCH] Security threat intercept notice dispatched via EmailIt routing.`,
+          timestamp: new Date()
+        };
+        currentActionLogs = [emailLog, securityLog, ...state.actionLogs].slice(0, 50);
+      } catch (err) {
+        // Silent catch
+      }
     }
 
     return {
@@ -336,6 +355,7 @@ export const useDesktopAgentStore = create((set, get) => ({
   }),
 
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
+  setTargetApp: (app) => set({ targetApplication: app }),
   setView: (viewName) => set({ currentView: viewName }),
   setSystemStatus: (status) => set({ systemStatus: status }),
   setLogFilter: (filter) => set({ logFilter: filter }),

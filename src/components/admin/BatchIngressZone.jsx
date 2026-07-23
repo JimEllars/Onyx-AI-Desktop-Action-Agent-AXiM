@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import AgentHeader from './AgentHeader';
 import DropZone from './DropZone';
 import ControlSidebar from './ControlSidebar';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function BatchIngressZone() {
-  const [targetApplication, setTargetApp] = useState('green_machine');
-  const { cfCacheStatus, cfRayId, fleetNodes, addActionLog, localQueueCount } = useDesktopAgentStore();
+  const { targetApplication, setTargetApp, cfCacheStatus, cfRayId, fleetNodes, addActionLog, localQueueCount } = useDesktopAgentStore();
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-8 font-mono selection:bg-emerald-500/30">

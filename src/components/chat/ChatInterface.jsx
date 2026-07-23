@@ -23,7 +23,7 @@ export const getWorkersAiToolPayload = (userPrompt) => ({
 
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode, operatorAddress, autopilotActive } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode, operatorAddress, autopilotActive, targetApplication } = useDesktopAgentStore();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -171,6 +171,9 @@ export default function ChatInterface() {
             </button>
           </div>
           <div className="flex items-center gap-2 text-[9px] text-slate-500">
+            <div className="border border-slate-800 text-slate-500 font-mono text-[9px] tracking-widest px-2 py-0.5 bg-slate-950 rounded uppercase mr-2">
+              ROUTE: {targetApplication}
+            </div>
             <SafeIcon icon={FiTerminal} />
             <span>BRIDGE_V1.8</span>
           </div>
