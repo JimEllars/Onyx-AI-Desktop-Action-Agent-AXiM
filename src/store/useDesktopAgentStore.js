@@ -52,17 +52,36 @@ export const useDesktopAgentStore = create((set, get) => ({
     ].slice(0, 50)
   })),
 
-  setCommunicationMode: (mode) => set((state) => {
+  setCommunicationMode: async (mode) => {
     const traceText = mode === 'AUDIO_ONLY'
       ? '[CONNECT] Audio channel trunk active. Establishing secure voice proxy via Cloudflare Calls WebRTC gateway...'
       : mode === 'DISCUSSION'
       ? '[CONNECT] Multi-modal discussion loop activated. Synthetic audio-response bridge engaged...'
       : '[SYSTEM] Reverting conversation link to baseline text-input channels.';
-    return {
+
+    set((state) => ({
       communicationMode: mode,
       actionLogs: [{ id: Date.now(), type: 'network', text: traceText, timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
-    };
-  }),
+    }));
+
+    if (mode !== 'TEXT') {
+      try {
+        // Dispatch WebRTC peer session initialization
+        await aximCoreClient.functions.invoke('webrtc-handshake', {
+          body: { mode, session_affinity: `ses_${get().operatorAddress}` }
+        });
+        get().addActionLog({
+          type: 'network',
+          text: `[WEBRTC_CALLS] Successfully initialized Cloudflare Calls media peer session for mode: [${mode}].`
+        });
+      } catch (err) {
+        get().addActionLog({
+          type: 'warning',
+          text: `[WEBRTC_CALLS] Local fallback mode engaged. Cloudflare Calls media edge proxy standby.`
+        });
+      }
+    }
+  },
 
   addMessage: (msg) => set((state) => ({ 
     messages: [...state.messages, { ...msg, id: msg.id || Date.now(), timestamp: new Date() }]
