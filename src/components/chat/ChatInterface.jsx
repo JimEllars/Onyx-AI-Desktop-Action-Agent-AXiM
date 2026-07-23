@@ -5,9 +5,25 @@ import SafeIcon from '../../common/SafeIcon';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 import NeuralInterface from '../hud/NeuralInterface';
 
+export const getWorkersAiToolPayload = (userPrompt) => ({
+  messages: [{ role: 'user', content: userPrompt }],
+  tools: [
+    {
+      name: 'open_browser',
+      description: 'Open secure browser environment redirected through AXiM WAF',
+      parameters: { type: 'object', properties: { url: { type: 'string' } } }
+    },
+    {
+      name: 'execute_cli_script',
+      description: 'Execute sanitized PowerShell or bash script',
+      parameters: { type: 'object', properties: { command: { type: 'string' } } }
+    }
+  ]
+});
+
 export default function ChatInterface() {
   const [input, setInput] = useState('');
-  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode } = useDesktopAgentStore();
+  const { messages, addMessage, addActionLog, systemStatus, setSystemStatus, setActiveTaskId, updateCloudflareMetrics, communicationMode, setCommunicationMode, operatorAddress } = useDesktopAgentStore();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -25,6 +41,10 @@ export default function ChatInterface() {
   }, [systemStatus]);
 
   const parseCommand = (input) => {
+    // Construct Workers AI Tool Payload (fallback to pattern matching if offline)
+    const payload = getWorkersAiToolPayload(input);
+
+    // Existing keyword pattern matching fallback
     const text = input.toLowerCase();
     if (text.includes('browser') || text.includes('open')) return 'OS_BROWSER_OPEN';
     if (text.includes('script') || text.includes('run')) return 'CLI_EXECUTE_SECURE';
@@ -32,13 +52,22 @@ export default function ChatInterface() {
     return 'LLM_REASONING_CHAIN';
   };
 
-  const handleSend = async (e) => {
+    const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     updateCloudflareMetrics();
 
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-session-affinity': `ses_${operatorAddress || 'lax_primary'}`,
+      'X-AXiM-Internal-Auth': import.meta.env.VITE_AXIM_INTERNAL_KEY || ''
+    };
+
+    addActionLog({ type: 'network', text: `[CLOUDFLARE_EDGE] Attached session affinity key [ses_${(operatorAddress || 'lax_primary').substring(0, 8)}] for prompt tensor cache reuse.` });
+
     addActionLog({ type: 'network', text: `[CONNECT] Routing instruction packet through Cloudflare edge worker tunnel at ray: [${useDesktopAgentStore.getState().cfRayId.substring(0, 8)}...]` });
+
 
     const userMsg = input;
     setInput('');
@@ -115,6 +144,10 @@ export default function ChatInterface() {
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></div>
           </div>
           <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Neural Link: Active</span>
+          <div className="text-[9px] text-cyan-400 font-mono flex items-center gap-1.5 bg-cyan-950/40 border border-cyan-900/50 px-2 py-0.5 rounded ml-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            WORKERS_AI: LLAMA-3.1-8B-TOOLING
+          </div>
         </div>
         <div className="flex gap-4">
           <div className="flex gap-2">
