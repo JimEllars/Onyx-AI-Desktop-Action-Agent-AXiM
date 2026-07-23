@@ -113,7 +113,7 @@ export default function ActionConsole({ className = "" }) {
             </motion.div>
           )}
           {/* actionLogs has the newest log at index 0. We want the oldest at the top and newest at the bottom if we scroll to the bottom. Let's reverse it visually or reverse the array. Reversing the array is fine. */}
-          {[...filteredLogs].reverse().map((log) => {
+          {[...filteredLogs].sort((a, b) => a.timestamp - b.timestamp).map((log) => {
             // Use simple regex or includes to find error syntax
             const isError = log.text?.includes('[ERROR]');
             const isFault = log.text?.includes('[FAULT]');
