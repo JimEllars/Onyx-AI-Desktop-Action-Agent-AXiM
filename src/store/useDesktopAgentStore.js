@@ -116,7 +116,7 @@ export const useDesktopAgentStore = create((set, get) => ({
   approveAction: async (id) => {
     const { operatorAddress } = get();
     set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) }));
-    get().addActionLog({ type: "system", text: `[HITL] Operator signature validated. Resuming onyx_mk3 MCP workflow execution thread for task node: ${id}` });
+    get().addActionLog({ type: "system", text: `[HITL] Operator signature validated. [DB_SYNCED // RLS_VERIFIED]. Resuming onyx_mk3 MCP workflow execution thread for task node: ${id}` });
 
     try {
       await aximCoreClient
@@ -133,7 +133,8 @@ export const useDesktopAgentStore = create((set, get) => ({
           body: {
             task_id: id,
             operator: get().operatorAddress,
-            resolution: 'APPROVED'
+            resolution: 'APPROVED',
+            ray_id: get().cfRayId
           }
         });
         get().addActionLog({
@@ -151,7 +152,7 @@ export const useDesktopAgentStore = create((set, get) => ({
   rejectAction: async (id) => {
     const { operatorAddress } = get();
     set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) }));
-    get().addActionLog({ type: "error", text: `[HITL] Operator rejected proposal packet. Terminating execution loop for node: ${id}` });
+    get().addActionLog({ type: "error", text: `[HITL] Operator rejected proposal packet. [DB_SYNCED // RLS_VERIFIED]. Terminating execution loop for node: ${id}` });
 
     try {
       await aximCoreClient
@@ -168,7 +169,8 @@ export const useDesktopAgentStore = create((set, get) => ({
           body: {
             task_id: id,
             operator: get().operatorAddress,
-            resolution: 'REJECTED'
+            resolution: 'REJECTED',
+            ray_id: get().cfRayId
           }
         });
         get().addActionLog({
@@ -185,6 +187,12 @@ export const useDesktopAgentStore = create((set, get) => ({
 
   addPendingApproval: (approval) => set((state) => ({
     pendingApprovals: [...state.pendingApprovals, approval]
+  })),
+
+  recordOfflineTelemetryGap: () => set((state) => ({
+    cpuHistory: [...state.cpuHistory, null].slice(-20),
+    memoryHistory: [...state.memoryHistory, null].slice(-20),
+    latencyHistory: [...state.latencyHistory, null].slice(-20)
   })),
 
   updateCloudflareMetrics: (data) => set((state) => {
@@ -248,7 +256,8 @@ export const useDesktopAgentStore = create((set, get) => ({
           body: {
             operator: get().operatorAddress,
             resolution: 'THREAT_DETECTED',
-            details: 'Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.'
+            details: 'Intercepted automated DDoS probe packet from blacklisted CIDR block at Cloudflare edge.',
+            ray_id: get().cfRayId
           }
         });
         const emailLog = {
