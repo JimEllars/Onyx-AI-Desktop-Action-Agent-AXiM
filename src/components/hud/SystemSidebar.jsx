@@ -4,9 +4,11 @@ import { FiCpu, FiGlobe, FiLayers, FiActivity } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
+import { useState } from 'react';
 
 export default function SystemSidebar() {
-  const { communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
+  const [packetLoss, setPacketLoss] = useState("0.0%");
+  const { wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
 
 
 
@@ -17,6 +19,14 @@ export default function SystemSidebar() {
     else if (audioBitrate === '128 kbps') nextBitrate = '256 kbps (HD)';
     else nextBitrate = '64 kbps';
     setAudioBitrate(nextBitrate);
+
+    setPacketLoss("1.2%");
+    setTimeout(() => {
+      setPacketLoss("0.4%");
+      setTimeout(() => {
+        setPacketLoss("0.0%");
+      }, 800);
+    }, 500);
   };
 
   const getLatencyToken = (latency) => {
@@ -34,7 +44,7 @@ export default function SystemSidebar() {
 
   if (communicationMode !== 'TEXT') {
     const widthVal = audioBitrate === '64 kbps' ? '64%' : audioBitrate === '128 kbps' ? '80%' : '100%';
-    stats.push({ label: 'WEBRTC_AUDIO', val: audioBitrate, width: widthVal, icon: FiActivity, color: 'text-indigo-400' });
+    stats.push({ label: 'WEBRTC_AUDIO', val: `${audioBitrate} // LOSS: ${packetLoss}`, width: widthVal, icon: FiActivity, color: 'text-indigo-400' });
   }
 
 
@@ -95,6 +105,15 @@ export default function SystemSidebar() {
           }
         >
           {autopilotActive ? '[AUTOPILOT_ACTIVE]' : '[MANUAL_OVERRIDE_LOCK]'}
+        </button>\n        <button
+          onClick={() => toggleWafMode()}
+          className={
+            wafStrictMode
+              ? 'w-full mt-2 border border-emerald-500/30 text-emerald-400 bg-emerald-950/10 text-[9px] font-bold p-2 rounded tracking-widest text-center cursor-pointer block uppercase shadow-[0_0_10px_rgba(16,185,129,0.1)]'
+              : 'w-full mt-2 border border-amber-500/30 text-amber-500 bg-amber-950/10 text-[9px] font-bold p-2 rounded tracking-widest text-center cursor-pointer block uppercase animate-pulse'
+          }
+        >
+          {wafStrictMode ? '[WAF_STRICT_MODE_ACTIVE]' : '[WAF_MONITOR_ONLY]'}
         </button>
       </div>
 
