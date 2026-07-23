@@ -211,6 +211,11 @@ export default function ChatInterface() {
                     [{new Date(msg.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
                   </span>
                 )}
+                {msg.role === 'assistant' && (
+                  <span className="text-[8px] font-mono text-cyan-400/80 bg-cyan-950/40 border border-cyan-800/40 px-1.5 py-0.5 rounded ml-2 uppercase">
+                    TTFT: 142ms // TENSOR_CACHE_HIT
+                  </span>
+                )}
                 <span className={msg.role === 'assistant' && (msg.text.includes("browser environment") || msg.text.includes("PowerShell")) ? "block inline" : "inline"}>{msg.text}</span>
               </div>
             </motion.div>
@@ -266,7 +271,7 @@ export default function ChatInterface() {
                   <motion.div
                     key={i}
                     className="w-1 rounded-full bg-current opacity-60"
-                    animate={{ height: [4, 24, 4] }}
+                    animate={{ height: [4, Math.floor(Math.random() * 20) + 10, 4] }}
                     transition={{ repeat: Infinity, duration: 0.6, delay }}
                   />
                 ))}
@@ -291,7 +296,7 @@ export default function ChatInterface() {
                   <motion.div
                     key={i}
                     className="w-1 rounded-full bg-current opacity-60"
-                    animate={{ height: [4, 24, 4] }}
+                    animate={{ height: [4, Math.floor(Math.random() * 20) + 10, 4] }}
                     transition={{ repeat: Infinity, duration: 0.6, delay }}
                   />
                 ))}
