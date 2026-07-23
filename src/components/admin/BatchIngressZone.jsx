@@ -49,6 +49,10 @@ export default function BatchIngressZone() {
                   <span className="text-[10px] text-purple-400 font-bold uppercase">{cfRayId}</span>
                 </div>
               </div>
+              <div className="text-[10px] text-emerald-400 font-mono flex items-center gap-1.5 bg-emerald-950/40 border border-emerald-900/50 px-2 py-1 rounded ml-auto mt-2 sm:mt-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                WORKERS_AI_PARSER: TOMARKDOWN ACTIVE
+              </div>
             </div>
 
             <DropZone targetApplication={targetApplication} />
