@@ -125,7 +125,23 @@ export const useDesktopAgentStore = create((set, get) => ({
           resolved_at: new Date().toISOString(),
           resolved_by: operatorAddress
         })
-        .eq("id", id);
+                .eq("id", id);
+
+      try {
+        await aximCoreClient.functions.invoke('notify-email', {
+          body: {
+            task_id: id,
+            operator: get().operatorAddress,
+            resolution: 'APPROVED'
+          }
+        });
+        get().addActionLog({
+          type: 'network',
+          text: `[EMAIL_DISPATCH] HITL resolution notice securely dispatched via EmailIt proxy routing.`
+        });
+      } catch (err) {
+        // Silent catch: Do not block the primary approval workflow if email dispatch fails.
+      }
     } catch (e) {
       get().addActionLog({ type: "error", text: `[HITL] Edge database audit persistence failed for node ${id}: ${e.message}` });
     }
@@ -144,7 +160,23 @@ export const useDesktopAgentStore = create((set, get) => ({
           resolved_at: new Date().toISOString(),
           resolved_by: operatorAddress
         })
-        .eq("id", id);
+                .eq("id", id);
+
+      try {
+        await aximCoreClient.functions.invoke('notify-email', {
+          body: {
+            task_id: id,
+            operator: get().operatorAddress,
+            resolution: 'REJECTED'
+          }
+        });
+        get().addActionLog({
+          type: 'network',
+          text: `[EMAIL_DISPATCH] HITL resolution notice securely dispatched via EmailIt proxy routing.`
+        });
+      } catch (err) {
+        // Silent catch: Do not block the primary approval workflow if email dispatch fails.
+      }
     } catch (e) {
       get().addActionLog({ type: "error", text: `[HITL] Edge database audit persistence failed for node ${id}: ${e.message}` });
     }

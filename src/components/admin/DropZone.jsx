@@ -142,7 +142,7 @@ export default function DropZone({ targetApplication }) {
       }}
       className={`flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all ${systemStatus === 'ERROR' ? 'cursor-not-allowed bg-red-950/20' : 'cursor-crosshair'} group`}
     >
-      <div className="flex flex-col items-center gap-3 pointer-events-none">
+      <div className="min-h-[64px] flex flex-col justify-center items-center gap-3 pointer-events-none">
         {isProcessing ? (
           <>
             <div className="w-10 h-10 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin shadow-[0_0_15px_rgba(16,185,129,0.3)]"></div>
