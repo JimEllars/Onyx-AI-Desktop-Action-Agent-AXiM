@@ -61,9 +61,14 @@ export default {
         }
 
         if (url.pathname === "/api/v1/telemetry/batch") {
-          // Example processing of batch request
           const body = await request.json();
-          return new Response(JSON.stringify({ status: "batch_accepted", count: Array.isArray(body) ? body.length : 0 }), {
+          if (!Array.isArray(body)) {
+            return new Response(JSON.stringify({ error: "Payload must be an array" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          }
+          return new Response(JSON.stringify({ status: "batch_accepted", count: body.length }), {
             status: 200,
             headers: { "Content-Type": "application/json", ...CORS_HEADERS }
           });
