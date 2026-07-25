@@ -13,42 +13,65 @@ async function bootstrapDatabase(db: D1Database) {
   `);
 }
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Cache-Control": "public, max-age=60" // leverage edge caching for 60s
+};
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    if (request.method === "POST" && url.pathname === "/api/v1/session/heartbeat") {
-      try {
-        const body = await request.json() as { session_id?: string, user_id?: string, client_version?: string };
-        const sessionId = body.session_id;
-        const userId = body.user_id;
-        const clientVersion = body.client_version || "unknown";
-        const lastSeen = Math.floor(Date.now() / 1000);
+    // Handle CORS preflight
+    if (request.method === "OPTIONS") {
+      return new Response(null, { headers: CORS_HEADERS });
+    }
 
-        if (!sessionId || !userId) {
-          return new Response(JSON.stringify({ error: "Missing session_id or user_id" }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" }
+    if (request.method === "POST") {
+      try {
+        if (url.pathname === "/api/v1/session/heartbeat") {
+          const body = await request.json() as { session_id?: string, user_id?: string, client_version?: string };
+          const sessionId = body.session_id;
+          const userId = body.user_id;
+          const clientVersion = body.client_version || "unknown";
+          const lastSeen = Math.floor(Date.now() / 1000);
+
+          if (!sessionId || !userId) {
+            return new Response(JSON.stringify({ error: "Missing session_id or user_id" }), {
+              status: 400,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          }
+
+          // Initialize table if it doesn't exist yet (in reality this should be done via migrations)
+          await bootstrapDatabase(env.ONYX_DB);
+
+          await env.ONYX_DB.prepare(
+            `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(session_id) DO UPDATE SET last_seen = ?`
+          ).bind(sessionId, userId, clientVersion, lastSeen, lastSeen).run();
+
+          return new Response(JSON.stringify({ status: "ok" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
           });
         }
 
-        // Initialize table if it doesn't exist yet (in reality this should be done via migrations)
-        await bootstrapDatabase(env.ONYX_DB);
-
-        await env.ONYX_DB.prepare(
-          `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(session_id) DO UPDATE SET last_seen = ?`
-        ).bind(sessionId, userId, clientVersion, lastSeen, lastSeen).run();
-
-        return new Response(JSON.stringify({ status: "ok" }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" }
-        });
+        if (url.pathname === "/api/v1/telemetry/batch") {
+          // Example processing of batch request
+          const body = await request.json();
+          return new Response(JSON.stringify({ status: "batch_accepted", count: Array.isArray(body) ? body.length : 0 }), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+          });
+        }
       } catch (e: any) {
         return new Response(JSON.stringify({ error: e.message }), {
           status: 500,
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS }
         });
       }
     }
