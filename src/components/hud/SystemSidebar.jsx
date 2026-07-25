@@ -8,11 +8,13 @@ import { useState } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
+  const { fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
 
 
 
 
+
+  const degradedNodeCount = fleetNodes.filter(n => n.status.includes('OUT_OF_SYNC') || n.status.includes('ERROR')).length;
   const cycleAudioBitrate = () => {
     let nextBitrate;
     if (audioBitrate === '64 kbps') nextBitrate = '128 kbps';
@@ -139,6 +141,14 @@ export default function SystemSidebar() {
               <span className="text-[10px] text-purple-400 font-mono font-bold">{activeTaskId || 'IDLE'}</span>
           </div>
       </div>
+      {degradedNodeCount > 0 && (
+        <div className="shrink-0 pt-2 border-t border-slate-800/50">
+          <div className="flex justify-between items-center bg-amber-950/20 border border-amber-500/30 p-2 rounded">
+            <span className="text-[9px] text-amber-500 font-bold tracking-widest uppercase">Degraded Mesh Nodes</span>
+            <span className="text-[10px] text-amber-400 font-mono font-bold animate-pulse">{degradedNodeCount} OFFLINE</span>
+          </div>
+        </div>
+      )}
       
       <div className="pt-4 border-t border-slate-800 flex-1 flex flex-col min-h-0">
         <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mb-3 block shrink-0">Neural Pulse</span>
