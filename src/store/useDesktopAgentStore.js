@@ -370,19 +370,23 @@ export const useDesktopAgentStore = create((set, get) => ({
      },
 
     clearActionLogs: async () => {
-       set({ actionLogs: [], localQueueCount: 0 });
-       try {
-         await aximCoreClient.from('telemetry_events').insert([{
-           event_type: 'CACHE_WIPE',
-           component_origin: 'AXiM_DESKTOP_ACTION_AGENT',
-           resolved_by: get().operatorAddress,
-           timestamp: new Date().toISOString()
-         }]);
-       } catch (e) {
-         console.warn('[TELEMETRY] Cache wipe event logging failed:', e);
-       }
-     },
-
+    set({ actionLogs: [], localQueueCount: 0 });
+    try {
+      await aximCoreClient.from('telemetry_events').insert([{
+        event_type: 'CACHE_WIPE',
+        component_origin: 'AXiM_DESKTOP_ACTION_AGENT',
+        resolved_by: get().operatorAddress,
+        timestamp: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.warn('[TELEMETRY] Cache wipe event logging failed:', e);
+      get().addActionLog({
+        type: 'warning',
+        text: '[WARNING] [TELEMETRY] Cache wipe event remote logging timed out. Local cache cleared.',
+        timestamp: new Date()
+      });
+    }
+  },
   clearCacheBlocks: async () => {
     try {
       await aximCoreClient.from('telemetry_events').insert([{
@@ -393,6 +397,11 @@ export const useDesktopAgentStore = create((set, get) => ({
       }]);
     } catch (e) {
       console.warn('[TELEMETRY] Global system wipe event logging failed:', e);
+      get().addActionLog({
+        type: 'fault',
+        text: '[FAULT] [TELEMETRY] Global system wipe event logging failed. Telemetry sync degraded.',
+        timestamp: new Date()
+      });
     }
     set({
     cpuHistory: [],

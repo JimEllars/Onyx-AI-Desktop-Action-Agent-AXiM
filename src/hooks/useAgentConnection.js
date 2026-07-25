@@ -3,8 +3,31 @@ import { aximCoreClient } from '../lib/supabaseClient.js';
 import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 
 export function useAgentConnection() {
-  const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog, localQueueCount, clearLocalBufferQueue } = useDesktopAgentStore();
+  const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog, localQueueCount, clearLocalBufferQueue, operatorAddress } = useDesktopAgentStore();
   const prevStatusRef = useRef(null);
+
+  // Heartbeat Effect
+  useEffect(() => {
+    if (!walletConnected) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        await fetch('/api/v1/session/heartbeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: `ses_${operatorAddress || 'unknown'}`,
+            user_id: operatorAddress || 'unknown',
+            client_version: '3.5.2'
+          })
+        });
+      } catch (e) {
+        // Silent catch for network errors to prevent UI disruption
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [walletConnected, operatorAddress]);
 
   useEffect(() => {
     if (!walletConnected) return;
@@ -53,7 +76,7 @@ export function useAgentConnection() {
           console.error('[AGENT_CONNECTION] Channel subscription error or closed:', status);
           addActionLog({ type: 'warning', text: '[DISCONNECT] [CLOUDFLARE_EDGE] Real-time telemetry stream dropped. Falling back to local autopilot telemetry.' });
           setLiveChannelConnected(false);
-          useDesktopAgentStore.getState().recordOfflineTelemetryGap();
+          useDesktopAgentStore.getState().recordOfflineTelemetryGap?.();
         }
         prevStatusRef.current = status;
       });
