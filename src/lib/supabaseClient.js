@@ -5,6 +5,8 @@ const supabaseAnonKey = import.meta.env.VITE_AXIM_CORE_ANON_KEY || '';
 
 import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 
+let sessionLogAttached = false;
+
 const customFetch = async (url, options) => {
   options = options || {};
   options.headers = options.headers || {};
@@ -15,8 +17,8 @@ const customFetch = async (url, options) => {
     options.headers['X-AXiM-Internal-Auth'] = import.meta.env.VITE_AXIM_INTERNAL_KEY || '';
 
     // Add a system log entry when session affinity is attached
-    if (!options.headers['_log_attached']) {
-      options.headers['_log_attached'] = 'true';
+    if (!sessionLogAttached) {
+      sessionLogAttached = true;
       setTimeout(() => {
          try {
            const address = operatorAddress || 'default_session';
@@ -34,7 +36,7 @@ const customFetch = async (url, options) => {
   const response = await fetch(url, options);
   if (response.status === 401 || response.status === 403) {
     console.error('[CLOUDFLARE_EDGE_BLOCK] Unauthorized access intercepted by Zero Trust.');
-    throw new Error('CLOUDFLARE_EDGE_BLOCK');
+    // Removed throw Error to avoid breaking the Supabase client gracefully
   }
   return response;
 };

@@ -3,7 +3,11 @@ import ReactECharts from 'echarts-for-react';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function TelemetryChart() {
-  const { cpuHistory, memoryHistory, latencyHistory } = useDesktopAgentStore();
+  // Only subscribe to history updates to prevent UI stutter on unrelated state changes
+  const cpuHistory = useDesktopAgentStore(state => state.cpuHistory);
+  const memoryHistory = useDesktopAgentStore(state => state.memoryHistory);
+  const latencyHistory = useDesktopAgentStore(state => state.latencyHistory);
+
   const chartRef = useRef(null);
 
   useEffect(() => {

@@ -26,6 +26,12 @@ struct HeartbeatPayload<'a> {
     client_version: &'a str,
 }
 
+#[derive(Serialize)]
+pub struct LogEntry {
+    pub level: String,
+    pub message: String,
+}
+
 pub async fn send_session_heartbeat(session_id: &str, user_id: &str) -> Result<(), TelemetryError> {
     let client = Client::new();
     let url = "https://onyx-ai-desktop-action-agent-axim.pages.dev/api/v1/session/heartbeat";
@@ -37,6 +43,18 @@ pub async fn send_session_heartbeat(session_id: &str, user_id: &str) -> Result<(
 
     let _res = client.post(url)
         .json(&payload)
+        .send()
+        .await?;
+
+    Ok(())
+}
+
+pub async fn send_telemetry_batch(logs: &[LogEntry]) -> Result<(), TelemetryError> {
+    let client = Client::new();
+    let url = "https://onyx-ai-desktop-action-agent-axim.pages.dev/api/v1/telemetry/batch";
+
+    let _res = client.post(url)
+        .json(&logs)
         .send()
         .await?;
 
