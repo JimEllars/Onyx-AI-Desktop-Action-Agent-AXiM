@@ -180,7 +180,7 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide relative z-10">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 scrollbar-hide relative z-10" style={{ scrollBehavior: 'auto' }}>
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
             <motion.div
