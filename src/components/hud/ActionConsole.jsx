@@ -5,6 +5,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function ActionConsole({ className = "" }) {
   const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog, logFilter, setLogFilter, isAutoScrollEnabled, toggleAutoScroll, clearActionLogs } = useDesktopAgentStore();
   const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
+  const [editedPayloads, setEditedPayloads] = React.useState({});
   const [isCopied, setIsCopied] = React.useState(false);
 
 
@@ -186,16 +187,19 @@ export default function ActionConsole({ className = "" }) {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-                      <pre className="mt-2 bg-slate-950/80 border border-slate-800 p-2 rounded text-[8px] text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap">
-{JSON.stringify({
-  "tool": "onyx_mcp_system_patch",
-  "execution_parameters": {
-    "task_id": approval.id,
-    "command_context": approval.action,
-    "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
-  }
-}, null, 2)}
-                      </pre>
+                      <textarea
+                        className="mt-2 bg-slate-950/80 border border-slate-800 p-2 rounded text-[8px] text-slate-400 font-mono w-full h-32 resize-y focus:outline-none focus:border-emerald-500/50"
+                        value={editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : JSON.stringify({
+                          "tool": "onyx_mcp_system_patch",
+                          "execution_parameters": {
+                            "task_id": approval.id,
+                            "command_context": approval.action,
+                            "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
+                          }
+                        }, null, 2)}
+                        onChange={(e) => setEditedPayloads({ ...editedPayloads, [approval.id]: e.target.value })}
+                        spellCheck={false}
+                      />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -203,7 +207,15 @@ export default function ActionConsole({ className = "" }) {
               <div className="flex gap-2 mt-1">
                 <button
                   onClick={() => {
-                    approveAction(approval.id);
+                    const payload = editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : JSON.stringify({
+                      "tool": "onyx_mcp_system_patch",
+                      "execution_parameters": {
+                        "task_id": approval.id,
+                        "command_context": approval.action,
+                        "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
+                      }
+                    }, null, 2);
+                    approveAction(approval.id, payload);
                   }}
                   className="px-3 py-1.5 bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors rounded text-[9px]"
                 >
