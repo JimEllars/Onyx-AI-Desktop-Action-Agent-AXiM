@@ -1,0 +1,10 @@
+[package]
+name = "onyx"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+telemetry = { path = "../telemetry" }
+tokio = { version = "1", features = ["full"] }
+tui = "0.19"
+crossterm = "0.25"

@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/telemetry",
+    "crates/onyx"
+]
+resolver = "2"
