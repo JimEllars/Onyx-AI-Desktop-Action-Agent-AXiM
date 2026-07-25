@@ -53,6 +53,7 @@ export function useAgentConnection() {
           console.error('[AGENT_CONNECTION] Channel subscription error or closed:', status);
           addActionLog({ type: 'warning', text: '[DISCONNECT] [CLOUDFLARE_EDGE] Real-time telemetry stream dropped. Falling back to local autopilot telemetry.' });
           setLiveChannelConnected(false);
+          useDesktopAgentStore.getState().recordOfflineTelemetryGap();
         }
         prevStatusRef.current = status;
       });
