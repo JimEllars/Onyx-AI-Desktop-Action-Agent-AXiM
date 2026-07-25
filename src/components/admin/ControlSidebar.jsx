@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SafeIcon from '../../common/SafeIcon';
 import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount, checkFleetUpdates } = useDesktopAgentStore();
+  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount, checkFleetUpdates, subscribeToFleetRegistry } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
   const [isProcessingBuffer, setIsProcessingBuffer] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToFleetRegistry();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [subscribeToFleetRegistry]);
 
   const getLatencyToken = (latency) => {
     if (latency < 30) return <span className="text-emerald-500 font-bold">[EXCELLENT]</span>;

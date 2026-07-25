@@ -113,19 +113,25 @@ export const useDesktopAgentStore = create((set, get) => ({
     };
   }),
 
-  approveAction: async (id) => {
+  approveAction: async (id, parameterOverrides) => {
     const { operatorAddress } = get();
     set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) }));
     get().addActionLog({ type: "system", text: `[HITL] Operator signature validated. [DB_SYNCED // RLS_VERIFIED]. Resuming onyx_mk3 MCP workflow execution thread for task node: ${id}` });
 
     try {
+      const updateData = {
+        status: "APPROVED",
+        resolved_at: new Date().toISOString(),
+        resolved_by: operatorAddress
+      };
+
+      if (parameterOverrides) {
+        updateData.payload = parameterOverrides;
+      }
+
       await aximCoreClient
         .from("hitl_audit_logs")
-        .update({
-          status: "APPROVED",
-          resolved_at: new Date().toISOString(),
-          resolved_by: operatorAddress
-        })
+        .update(updateData)
                 .eq("id", id);
 
       try {
@@ -338,11 +344,40 @@ export const useDesktopAgentStore = create((set, get) => ({
     get().addActionLog({ type: 'success', text: '[SUCCESS] [UPDATER] Automated binary update hot-patch applied cleanly to remote mesh node: AXIM-NODE-ORD-03. Fleet unified.' });
   },
 
-    clearActionLogs: () => set({
-    actionLogs: [
-      { id: Date.now(), type: 'system', text: '[LEDGER_RESET] Action log buffer cleared by operator.', timestamp: new Date() }
-    ]
-  }),
+  subscribeToFleetRegistry: () => {
+       const channel = aximCoreClient
+         .channel('fleet-registry-sync')
+         .on('postgres_changes', {
+           event: '*',
+           schema: 'public',
+           table: 'app_registry'
+         }, (payload) => {
+           if (payload.new) {
+             set(state => ({
+               fleetNodes: state.fleetNodes.map(n =>
+                 n.uid === payload.new.app_id ? { ...n, status: payload.new.status } : n
+               )
+             }));
+           }
+         })
+         .subscribe();
+
+       return () => { aximCoreClient.removeChannel(channel); };
+     },
+
+    clearActionLogs: async () => {
+       set({ actionLogs: [], localQueueCount: 0 });
+       try {
+         await aximCoreClient.from('telemetry_events').insert([{
+           event_type: 'CACHE_WIPE',
+           component_origin: 'AXiM_DESKTOP_ACTION_AGENT',
+           resolved_by: get().operatorAddress,
+           timestamp: new Date().toISOString()
+         }]);
+       } catch (e) {
+         console.warn('[TELEMETRY] Cache wipe event logging failed:', e);
+       }
+     },
 
   clearCacheBlocks: () => set({
     cpuHistory: [],
