@@ -379,7 +379,18 @@ export const useDesktopAgentStore = create((set, get) => ({
        }
      },
 
-  clearCacheBlocks: () => set({
+  clearCacheBlocks: async () => {
+    try {
+      await aximCoreClient.from('telemetry_events').insert([{
+        event_type: 'SYSTEM_WIPE',
+        component_origin: 'AXiM_DESKTOP_ACTION_AGENT',
+        resolved_by: get().operatorAddress,
+        timestamp: new Date().toISOString()
+      }]);
+    } catch (e) {
+      console.warn('[TELEMETRY] Global system wipe event logging failed:', e);
+    }
+    set({
     cpuHistory: [],
     memoryHistory: [],
     latencyHistory: [],
@@ -396,7 +407,8 @@ export const useDesktopAgentStore = create((set, get) => ({
       { id: '02', uid: 'AXIM-NODE-DFW-02', os: 'Secure Edge Browser', build: 'v3.5.2', status: '[AUTOPILOT_ACTIVE]', color: 'text-cyan-400' },
       { id: '03', uid: 'AXIM-NODE-ORD-03', os: 'Headless Engine Mesh', build: 'v3.4.1', status: '[OUT_OF_SYNC_PENDING_PATCH]', color: 'text-amber-400' }
     ]
-  }),
+  });
+  },
 
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
   setTargetApp: (app) => set({ targetApplication: app }),
