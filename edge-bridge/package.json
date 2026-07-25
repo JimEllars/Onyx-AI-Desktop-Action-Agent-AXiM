@@ -1,0 +1,16 @@
+{
+  "name": "edge-bridge",
+  "version": "1.0.0",
+  "description": "Edge Bridge Cloudflare Worker",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --outfile=dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240320.1",
+    "esbuild": "^0.20.2",
+    "typescript": "^5.4.3",
+    "wrangler": "^3.38.0"
+  }
+}
