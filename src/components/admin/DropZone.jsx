@@ -12,6 +12,7 @@ export default function DropZone({ targetApplication }) {
   const [conversionStatus, setConversionStatus] = useState('');
   const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
   const [detectedFormat, setDetectedFormat] = useState('RAW');
+  const [isSuccess, setIsSuccess] = useState(false);
   const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus, isLiveChannelConnected } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
@@ -113,6 +114,8 @@ export default function DropZone({ targetApplication }) {
 
       const filename = droppedFile ? droppedFile.name : `upload_${Date.now()}.${format.toLowerCase()}`;
       addActionLog({ type: 'success', text: `[INGRESS] Document [${filename}] successfully processed and vectorized into central RAG Memory Banks.` });
+      setIsSuccess(true);
+      setTimeout(() => setIsSuccess(false), 2500);
     } catch (error) {
       console.warn('[BROWSER_SIMULATION] Ingestion captured into virtual local loop', error);
       addActionLog({ type: 'fault', text: `[FAULT] Edge ingestion failed. Captured into virtual local loop.` });
@@ -140,8 +143,15 @@ export default function DropZone({ targetApplication }) {
         borderColor: systemStatus === 'ERROR' ? '#ef4444' : (isDragging ? '#10b981' : '#1e293b'),
         backgroundColor: systemStatus === 'ERROR' ? 'rgba(127, 29, 29, 0.2)' : (isDragging ? 'rgba(16,185,129,0.05)' : 'transparent')
       }}
-      className={`flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all ${systemStatus === 'ERROR' ? 'cursor-not-allowed bg-red-950/20' : 'cursor-crosshair'} group`}
+      className={`relative flex-1 min-h-[160px] border border-dashed rounded-xl flex flex-col items-center justify-center p-6 transition-all ${systemStatus === 'ERROR' ? 'cursor-not-allowed bg-red-950/20' : 'cursor-crosshair'} group`}
     >
+
+      {isSuccess && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/40 rounded-xl backdrop-blur-sm z-10 animate-pulse">
+          <span className="text-emerald-400 text-lg mb-2">✔</span>
+          <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest">[VECTOR_INGESTION_SUCCESS]</span>
+        </div>
+      )}
       <div className="min-h-[64px] flex flex-col justify-center items-center gap-3 pointer-events-none">
         {isProcessing ? (
           <>

@@ -8,6 +8,7 @@ export default function ControlSidebar() {
   const [isFlushing, setIsFlushing] = useState(false);
   const [isProcessingBuffer, setIsProcessingBuffer] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeToFleetRegistry();
@@ -108,15 +109,19 @@ export default function ControlSidebar() {
           setIsCheckingUpdates(true);
           await checkFleetUpdates();
           setIsCheckingUpdates(false);
+          setIsVerified(true);
+          setTimeout(() => setIsVerified(false), 2000);
         }}
         disabled={isCheckingUpdates || systemStatus === 'ERROR'}
         className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${
-          isCheckingUpdates || systemStatus === 'ERROR'
+          isVerified
+            ? 'bg-emerald-950/40 border-emerald-500 text-emerald-400'
+            : isCheckingUpdates || systemStatus === 'ERROR'
             ? 'bg-slate-950/50 border-slate-900 text-slate-700 cursor-not-allowed'
             : 'bg-slate-950 hover:bg-slate-900 border-slate-800 text-purple-400 hover:border-purple-900 hover:shadow-[0_0_10px_rgba(168,85,247,0.1)]'
         }`}
       >
-        {isCheckingUpdates ? '[CHECKING_MANIFEST...]' : 'Verify Fleet Update Manifests'}
+        {isVerified ? '[MANIFESTS_VERIFIED]' : isCheckingUpdates ? '[CHECKING_MANIFEST...]' : 'Verify Fleet Update Manifests'}
       </button>
       </div>
 

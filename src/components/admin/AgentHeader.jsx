@@ -54,7 +54,9 @@ export default function AgentHeader() {
           <div className="border border-slate-800 text-slate-400 font-mono text-[9px] tracking-wider px-2 py-0.5 bg-slate-950/60 rounded mb-1 inline-block">
             MESH_NODE // {localNodeId}
           </div>
-          <span className="text-[9px] text-slate-500 tracking-widest font-bold uppercase">Identity Verified</span>
+          <span className={`text-[9px] tracking-widest font-bold uppercase ${isLiveChannelConnected ? 'text-slate-500' : 'text-amber-500 animate-pulse'}`}>
+       {isLiveChannelConnected ? 'Identity Verified' : '[OFFLINE_STANDBY]'}
+     </span>
           <div className="flex items-center gap-2 text-[10px] text-emerald-400/80 font-bold">
             <SafeIcon icon={FiLock} className="text-[8px]" />
             {operatorAddress}
