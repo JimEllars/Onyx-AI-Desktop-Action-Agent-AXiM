@@ -31,6 +31,15 @@ export default {
 
     if (request.method === "POST") {
       try {
+
+        if (url.pathname === "/api/v1/admin/init-db") {
+          await bootstrapDatabase(env.ONYX_DB);
+          return new Response(JSON.stringify({ status: "db_initialized" }), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+          });
+        }
+
         if (url.pathname === "/api/v1/session/heartbeat") {
           const body = await request.json() as { session_id?: string, user_id?: string, client_version?: string };
           const sessionId = body.session_id;
@@ -44,9 +53,6 @@ export default {
               headers: { "Content-Type": "application/json", ...CORS_HEADERS }
             });
           }
-
-          // Initialize table if it doesn't exist yet (in reality this should be done via migrations)
-          await bootstrapDatabase(env.ONYX_DB);
 
           await env.ONYX_DB.prepare(
             `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
