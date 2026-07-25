@@ -353,6 +353,10 @@ export const useDesktopAgentStore = create((set, get) => ({
            table: 'app_registry'
          }, (payload) => {
            if (payload.new) {
+             get().addActionLog({
+               type: 'system',
+               text: `[FLEET_SYNC] Remote node [${payload.new.app_id}] state mutated to: ${payload.new.status}`
+             });
              set(state => ({
                fleetNodes: state.fleetNodes.map(n =>
                  n.uid === payload.new.app_id ? { ...n, status: payload.new.status } : n

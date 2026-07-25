@@ -46,7 +46,7 @@ export default function ActionConsole({ className = "" }) {
 
   useEffect(() => {
     if (isAutoScrollEnabled) {
-      logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      logsEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }
   }, [actionLogs]);
 

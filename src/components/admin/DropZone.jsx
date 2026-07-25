@@ -13,7 +13,7 @@ export default function DropZone({ targetApplication }) {
   const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
   const [detectedFormat, setDetectedFormat] = useState('RAW');
   const [isSuccess, setIsSuccess] = useState(false);
-  const { localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus, isLiveChannelConnected } = useDesktopAgentStore();
+  const { operatorAddress, localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus, isLiveChannelConnected } = useDesktopAgentStore();
 
   const handleDrop = async (e) => {
     e.preventDefault();
@@ -105,6 +105,7 @@ export default function DropZone({ targetApplication }) {
         formData.append('document', blob, `upload_${Date.now()}.${format.toLowerCase()}`);
       }
       formData.append('target_app', targetApplication);
+      formData.append('session_affinity', `ses_${operatorAddress || 'lax_primary'}`);
 
       const { data, error } = await aximCoreClient.functions.invoke('knowledge-ingest', {
         body: formData,
