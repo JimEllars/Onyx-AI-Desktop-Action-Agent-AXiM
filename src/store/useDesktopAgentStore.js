@@ -21,7 +21,10 @@ export const useDesktopAgentStore = create((set, get) => ({
   autopilotActive: true,
   logFilter: 'ALL',
   isAutoScrollEnabled: true,
-  cloudflareEdgeNode: 'DFW-Core',
+  cloudflareEdgeNode: (() => {
+    const edgeNodes = ['DFW-Core', 'LAX-Primary', 'IAD-Relay', 'LHR-Edge', 'FRA-Node'];
+    return edgeNodes[Math.floor(Math.random() * edgeNodes.length)];
+  })(),
   cpuLoad: 12,
   memoryUsage: 142,
   cfCacheStatus: 'HIT',

@@ -147,7 +147,7 @@ export default function ActionConsole({ className = "" }) {
                 <span className="text-slate-600 shrink-0">
                   {log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
-                <span className={`${
+                <span title={log.text} className={`col-span-8 flex-1 line-clamp-2 ${
                   isHITL ? 'text-fuchsia-400 font-semibold tracking-wider' :
                   isAsguardShield ? 'text-red-400 font-bold tracking-wide animate-pulse' :
                   isEnrichment ? 'text-emerald-400 tracking-wide font-medium' :
@@ -213,7 +213,12 @@ export default function ActionConsole({ className = "" }) {
                 <button
                   onClick={() => {
                     const payload = editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : getDefaultPayload(approval);
-                    approveAction(approval.id, payload);
+                    try {
+                      const parsedPayload = typeof payload === 'string' ? JSON.parse(payload) : payload;
+                      approveAction(approval.id, parsedPayload);
+                    } catch (e) {
+                      addActionLog({ type: 'fault', text: '[SECURITY] Invalid JSON schema detected in MCP override payload. Execution halted.' });
+                    }
                   }}
                   className="px-3 py-1.5 bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors rounded text-[9px]"
                 >
