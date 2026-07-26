@@ -35,7 +35,7 @@ export function useAgentConnection() {
     if (!walletConnected) return;
 
     // Subscribe to the real-time agent_telemetry_stream channel
-    const channel = aximCoreClient.channel('agent_telemetry_stream');
+    const channel = aximCoreClient.channel('agent_telemetry_stream', { config: { broadcast: { ack: true } } });
 
     channel
       .on(

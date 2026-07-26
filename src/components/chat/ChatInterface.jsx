@@ -249,7 +249,7 @@ export default function ChatInterface() {
         )}
       </div>
 
-      <form onSubmit={handleSend} className="p-8 bg-slate-900/60 border-t border-slate-800 backdrop-blur-xl flex flex-col gap-4">
+      <form onSubmit={handleSend} className="p-6 md:p-8 bg-slate-900/60 border-t border-slate-800 backdrop-blur-xl flex flex-col gap-4">
         {systemStatus === 'EXECUTING' && (
           <div className="bg-cyan-950/20 border border-cyan-500/30 rounded-lg p-3 text-cyan-400 text-xs font-mono animate-pulse">
             [WORKFLOW_EMULATION] Spawned PowerShell child-process. Monitoring native container stream vectors via secure edge-bridge...
@@ -332,7 +332,7 @@ export default function ChatInterface() {
                 disabled={systemStatus === 'ERROR' || systemStatus === 'EXECUTING'}
                 className={`w-full border rounded-xl py-4 pl-14 pr-14 text-sm outline-none transition-all font-mono ${
                   systemStatus === 'ERROR'
-                    ? 'bg-red-950/20 border-red-900/40 text-red-300 focus:ring-0 placeholder:text-red-800/50'
+                    ? 'bg-red-950/20 border-red-900/40 text-red-300 focus:ring-0 placeholder:text-red-800/50 cursor-not-allowed'
                     : 'bg-slate-950/50 border-slate-800 focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/5 text-emerald-100 placeholder:text-slate-600'
                 }`}
               />

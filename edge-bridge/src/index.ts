@@ -10,6 +10,18 @@ async function bootstrapDatabase(db: D1Database) {
       client_version TEXT,
       last_seen INTEGER
     );
+    CREATE TABLE IF NOT EXISTS TelemetryLogs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      level TEXT,
+      message TEXT,
+      created_at INTEGER
+    );
+    CREATE TABLE IF NOT EXISTS CommandAuditLogs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      command TEXT,
+      executed_by TEXT,
+      created_at INTEGER
+    );
   `);
 }
 
@@ -74,6 +86,20 @@ export default {
               headers: { "Content-Type": "application/json", ...CORS_HEADERS }
             });
           }
+
+          const now = Math.floor(Date.now() / 1000);
+          const stmt = env.ONYX_DB.prepare(
+            `INSERT INTO TelemetryLogs (level, message, created_at) VALUES (?, ?, ?)`
+          );
+
+          const batchStmts = body.map((log: any) =>
+            stmt.bind(log.level || "info", log.message || "", now)
+          );
+
+          if (batchStmts.length > 0) {
+            await env.ONYX_DB.batch(batchStmts);
+          }
+
           return new Response(JSON.stringify({ status: "batch_accepted", count: body.length }), {
             status: 200,
             headers: { "Content-Type": "application/json", ...CORS_HEADERS }

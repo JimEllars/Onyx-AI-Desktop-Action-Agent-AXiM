@@ -130,35 +130,35 @@ export default function ControlSidebar() {
           Node Telemetry
         </h3>
         <div className="space-y-2 text-xs font-mono">
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>CPU Delta:</span>
             <span className="text-emerald-500">{cpuLoad.toFixed(1)}%</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Memory Vol:</span>
             <span className="text-emerald-500">{memoryUsage.toFixed(0)} MB</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Auth Handshake:</span>
             <span className="text-cyan-500">SIWE-Valid</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Network Latency:</span>
             <span className="text-amber-500">{networkLatencyMs.toFixed(0)} ms {getLatencyToken(networkLatencyMs)}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Edge Node:</span>
             <span className="text-cyan-400">{cloudflareEdgeNode}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Active Task:</span>
             <span className="text-purple-400">{activeTaskId || 'None'}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Threat Vectors:</span>
             <span className={threatCount > 0 ? "text-red-500" : "text-slate-500"}>{threatCount}</span>
           </div>
-          <div className="flex justify-between text-slate-500">
+          <div className="flex justify-between text-slate-400 items-center p-1 hover:bg-slate-800/30 rounded transition-colors">
             <span>Edge Cache Status:</span>
             <span className={cfCacheStatus === 'HIT' ? "text-emerald-400" : cfCacheStatus === 'MISS' ? "text-red-400" : "text-amber-400"}>{cfCacheStatus}</span>
           </div>
