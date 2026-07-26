@@ -26,7 +26,7 @@ export default function MainHUD() {
           </div>
 
           {/* Center: AI Interaction */}
-          <div className="flex-1 flex flex-col min-w-0 bg-slate-900/20 border border-slate-800/50 rounded-2xl overflow-hidden backdrop-blur-sm shadow-[0_0_50px_rgba(0,0,0,0.5)] ring-1 ring-white/5">
+          <div className="flex-1 flex flex-col min-w-0 bg-slate-900/40 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl ring-1 ring-white/10 transition-all duration-300 hover:shadow-[0_0_40px_rgba(16,185,129,0.1)]">
             <ChatInterface />
           </div>
 
