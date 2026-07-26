@@ -9,7 +9,7 @@ import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 export default function MainHUD() {
   const { localNodeId, isLiveChannelConnected, setView } = useDesktopAgentStore();
   return (
-    <div className="h-screen w-full bg-slate-950 text-slate-100 overflow-hidden flex flex-col font-mono selection:bg-emerald-500/30 relative">
+    <div className="h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden flex flex-col font-mono selection:bg-emerald-500/30 relative">
       {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px]"></div>
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950 via-transparent to-slate-950"></div>
@@ -20,7 +20,7 @@ export default function MainHUD() {
         
         <main className="flex-1 flex gap-6 min-h-0">
           {/* Left: Hardware & Logs */}
-          <div className="w-80 flex flex-col gap-6 shrink-0 hidden xl:flex">
+          <div className="w-80 flex flex-col gap-6 shrink-0 hidden xl:flex min-h-0">
             <SystemSidebar />
             <ActionConsole />
           </div>
@@ -31,7 +31,7 @@ export default function MainHUD() {
           </div>
 
           {/* Right: Batch & Telemetry */}
-          <div className="w-80 flex flex-col gap-6 shrink-0 hidden lg:flex">
+          <div className="w-80 flex flex-col gap-6 shrink-0 hidden lg:flex min-h-0">
             <div className="bg-slate-900/40 border border-slate-800 p-6 rounded-xl flex-1 flex flex-col gap-6 backdrop-blur-md">
               <div className="border border-slate-800/80 bg-slate-950 p-3 rounded-lg text-[9px] font-mono flex flex-col gap-1 shadow-inner">
                 <span>NODE_ID: {localNodeId}</span>

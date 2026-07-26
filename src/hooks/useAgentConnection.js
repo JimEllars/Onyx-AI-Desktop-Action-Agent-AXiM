@@ -5,6 +5,7 @@ import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 export function useAgentConnection() {
   const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog, localQueueCount, clearLocalBufferQueue, operatorAddress, setHeartbeatActive } = useDesktopAgentStore();
   const prevStatusRef = useRef(null);
+  const heartbeatCountRef = useRef(0);
 
   // Heartbeat Effect
   useEffect(() => {
@@ -22,13 +23,24 @@ export function useAgentConnection() {
           })
         });
         setHeartbeatActive(true);
+        heartbeatCountRef.current += 1;
+        if (heartbeatCountRef.current % 3 === 0) {
+          addActionLog({ type: 'network', text: '[EDGE_SYNC] Background heartbeat ping acknowledged by Cloudflare D1 proxy.' });
+        }
       } catch (e) {
         // Silent catch for network errors to prevent UI disruption
         setHeartbeatActive(false);
       }
     }, 30000);
 
-    return () => clearInterval(intervalId);
+    const telemetryIntervalId = setInterval(() => {
+      useDesktopAgentStore.getState().flushTelemetryBatch();
+    }, 60000);
+
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(telemetryIntervalId);
+    };
   }, [walletConnected, operatorAddress]);
 
   useEffect(() => {
