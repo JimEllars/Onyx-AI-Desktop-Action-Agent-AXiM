@@ -74,6 +74,7 @@ export default function DropZone({ targetApplication }) {
     const needsConversion = /\.(pdf|docx|html|png|jpeg|jpg)$/i.test(filename);
 
     if (needsConversion && droppedFile) {
+    addActionLog({ type: 'system', text: `[INGRESS] Detected complex document format (${detectedFormat}). Routing to Cloudflare Workers AI for semantic Markdown extraction...` });
       setConversionStatus(`[WORKERS_AI] Converting [${filename}] to semantic Markdown...`);
       try {
         const conversionFormData = new FormData();

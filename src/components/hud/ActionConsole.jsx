@@ -8,6 +8,18 @@ export default function ActionConsole({ className = "" }) {
   const [editedPayloads, setEditedPayloads] = React.useState({});
   const [isCopied, setIsCopied] = React.useState(false);
 
+  const getDefaultPayload = (approval) => {
+    return JSON.stringify({
+      "tool": "onyx_mcp_system_patch",
+      "execution_parameters": {
+        "task_id": approval.id,
+        "command_context": approval.action,
+        "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
+      }
+    }, null, 2);
+  };
+
+
 
   const filteredLogs = React.useMemo(() => {
     if (logFilter === 'ALL') return actionLogs;
@@ -189,14 +201,7 @@ export default function ActionConsole({ className = "" }) {
                     >
                       <textarea
                         className="mt-2 bg-slate-950/80 border border-slate-800 p-2 rounded text-[8px] text-slate-400 font-mono w-full h-32 resize-y focus:outline-none focus:border-emerald-500/50"
-                        value={editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : JSON.stringify({
-                          "tool": "onyx_mcp_system_patch",
-                          "execution_parameters": {
-                            "task_id": approval.id,
-                            "command_context": approval.action,
-                            "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
-                          }
-                        }, null, 2)}
+                        value={editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : getDefaultPayload(approval)}
                         onChange={(e) => setEditedPayloads({ ...editedPayloads, [approval.id]: e.target.value })}
                         spellCheck={false}
                       />
@@ -207,14 +212,7 @@ export default function ActionConsole({ className = "" }) {
               <div className="flex gap-2 mt-1">
                 <button
                   onClick={() => {
-                    const payload = editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : JSON.stringify({
-                      "tool": "onyx_mcp_system_patch",
-                      "execution_parameters": {
-                        "task_id": approval.id,
-                        "command_context": approval.action,
-                        "env_overrides": { "target_node": "win-device-0320a6", "origin_agent": approval.agent }
-                      }
-                    }, null, 2);
+                    const payload = editedPayloads[approval.id] !== undefined ? editedPayloads[approval.id] : getDefaultPayload(approval);
                     approveAction(approval.id, payload);
                   }}
                   className="px-3 py-1.5 bg-emerald-950/30 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-900/50 hover:text-emerald-300 transition-colors rounded text-[9px]"
