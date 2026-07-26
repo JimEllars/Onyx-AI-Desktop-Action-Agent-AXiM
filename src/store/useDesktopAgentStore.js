@@ -27,6 +27,8 @@ export const useDesktopAgentStore = create((set, get) => ({
   cfCacheStatus: 'HIT',
   cfRayId: '8b42f6ad120ea31c',
 
+  telemetryBuffer: [],
+  heartbeatActive: true,
   fleetNodes: [
     { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
     { id: '02', uid: 'AXIM-NODE-DFW-02', os: 'Secure Edge Browser', build: 'v3.5.2', status: '[AUTOPILOT_ACTIVE]', color: 'text-cyan-400' },
@@ -344,6 +346,31 @@ export const useDesktopAgentStore = create((set, get) => ({
     get().addActionLog({ type: 'success', text: '[SUCCESS] [UPDATER] Automated binary update hot-patch applied cleanly to remote mesh node: AXIM-NODE-ORD-03. Fleet unified.' });
   },
 
+
+  queueTelemetryEvent: (event) => set((state) => ({
+    telemetryBuffer: [...state.telemetryBuffer, event]
+  })),
+
+  flushTelemetryBatch: async () => {
+    const buffer = useDesktopAgentStore.getState().telemetryBuffer;
+    if (buffer.length === 0) return;
+
+    try {
+      const response = await fetch('/api/v1/telemetry/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(buffer)
+      });
+      if (response.ok) {
+        set({ telemetryBuffer: [] });
+      }
+    } catch (e) {
+      // Silently capture network failures and leave buffer intact
+    }
+  },
+
   subscribeToFleetRegistry: () => {
        const channel = aximCoreClient
          .channel('fleet-registry-sync')
@@ -424,6 +451,9 @@ export const useDesktopAgentStore = create((set, get) => ({
   },
 
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
+
+  setHeartbeatActive: (status) => set({ heartbeatActive: status }),
+
   setTargetApp: (app) => set({ targetApplication: app }),
   setView: (viewName) => set({ currentView: viewName }),
   setSystemStatus: (status) => set({ systemStatus: status }),

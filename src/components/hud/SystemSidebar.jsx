@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
+  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
 
 
 
@@ -55,7 +55,7 @@ export default function SystemSidebar() {
       <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none"></div>
       
       <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3 flex justify-between items-center shrink-0">
-        <span>Hardware HUD // {cloudflareEdgeNode}</span>
+        <span>Hardware HUD // {cloudflareEdgeNode} {heartbeatActive ? <span className="text-emerald-500">[BEAT_SYNCED]</span> : <span className="text-amber-500 animate-pulse">[HEARTBEAT_DROPPED]</span>}</span>
         <span className="text-[8px] animate-pulse text-emerald-500">LIVE_STREAM</span>
       </h3>
       

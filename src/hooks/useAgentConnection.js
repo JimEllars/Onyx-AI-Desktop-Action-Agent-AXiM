@@ -3,7 +3,7 @@ import { aximCoreClient } from '../lib/supabaseClient.js';
 import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 
 export function useAgentConnection() {
-  const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog, localQueueCount, clearLocalBufferQueue, operatorAddress } = useDesktopAgentStore();
+  const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog, localQueueCount, clearLocalBufferQueue, operatorAddress, setHeartbeatActive } = useDesktopAgentStore();
   const prevStatusRef = useRef(null);
 
   // Heartbeat Effect
@@ -21,8 +21,10 @@ export function useAgentConnection() {
             client_version: '3.5.2'
           })
         });
+        setHeartbeatActive(true);
       } catch (e) {
         // Silent catch for network errors to prevent UI disruption
+        setHeartbeatActive(false);
       }
     }, 30000);
 
