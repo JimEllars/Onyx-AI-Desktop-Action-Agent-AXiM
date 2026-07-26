@@ -72,6 +72,7 @@ export default function ChatInterface() {
     const userMsg = input;
     setInput('');
     addMessage({ role: 'user', text: userMsg });
+    addActionLog({ type: 'network', text: `[CLOUDFLARE_EDGE] Attached session affinity key for prompt tensor cache reuse.` });
 
     const lowerMsg = userMsg.toLowerCase();
     if (lowerMsg.includes('rm -rf') || lowerMsg.includes('sudo') || lowerMsg.includes('drop table') || lowerMsg.includes('format c:')) {
@@ -214,7 +215,7 @@ export default function ChatInterface() {
                     [{new Date(msg.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
                   </span>
                 )}
-                {msg.role === 'assistant' && (
+                {msg.role === 'assistant' && systemStatus === 'READY' && (
                   <span className="text-[8px] font-mono text-cyan-400/80 bg-cyan-950/40 border border-cyan-800/40 px-1.5 py-0.5 rounded ml-2 uppercase">
                     TTFT: 142ms // TENSOR_CACHE_HIT
                   </span>
