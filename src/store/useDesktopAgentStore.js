@@ -354,7 +354,7 @@ export const useDesktopAgentStore = create(
 
 
   queueTelemetryEvent: (event) => set((state) => ({
-    telemetryBuffer: [...state.telemetryBuffer, event]
+    telemetryBuffer: [...state.telemetryBuffer, event].slice(-100)
   })),
 
   flushTelemetryBatch: async () => {

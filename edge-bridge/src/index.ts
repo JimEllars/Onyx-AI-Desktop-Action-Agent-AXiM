@@ -66,16 +66,24 @@ export default {
             });
           }
 
-          await env.ONYX_DB.prepare(
-            `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
-             VALUES (?, ?, ?, ?)
-             ON CONFLICT(session_id) DO UPDATE SET last_seen = ?`
-          ).bind(sessionId, userId, clientVersion, lastSeen, lastSeen).run();
+          try {
+            if (!env.ONYX_DB) throw new Error("D1 binding missing");
+            await env.ONYX_DB.prepare(
+              `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(session_id) DO UPDATE SET last_seen = ?`
+            ).bind(sessionId, userId, clientVersion, lastSeen, lastSeen).run();
 
-          return new Response(JSON.stringify({ status: "ok" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-          });
+            return new Response(JSON.stringify({ status: "ok" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          } catch (dbError) {
+            return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          }
         }
 
         if (url.pathname === "/api/v1/telemetry/batch") {
@@ -106,7 +114,7 @@ export default {
           });
         }
       } catch (e: any) {
-        return new Response(JSON.stringify({ error: e.message }), {
+        return new Response(JSON.stringify({ error: e.message || "Internal Server Error" }), {
           status: 500,
           headers: { "Content-Type": "application/json", ...CORS_HEADERS }
         });

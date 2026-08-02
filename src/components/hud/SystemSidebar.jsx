@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate } = useDesktopAgentStore();
+  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer } = useDesktopAgentStore();
 
 
 
@@ -54,10 +54,18 @@ export default function SystemSidebar() {
     <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-6 space-y-6 backdrop-blur-md shadow-inner relative overflow-hidden flex-1 flex flex-col">
       <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-[60px] rounded-full -mr-16 -mt-16 pointer-events-none"></div>
       
-      <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3 flex justify-between items-center shrink-0">
-        <span>Hardware HUD // {cloudflareEdgeNode} {heartbeatActive ? <span className="text-emerald-500">[BEAT_SYNCED]</span> : <span className="text-amber-500 animate-pulse">[HEARTBEAT_DROPPED]</span>}</span>
-        <span className="text-[8px] animate-pulse text-emerald-500">LIVE_STREAM</span>
-      </h3>
+      <div className="shrink-0">
+        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] border-b border-slate-800 pb-3 flex justify-between items-center">
+          <span>Hardware HUD // {cloudflareEdgeNode} {heartbeatActive ? <span className="text-emerald-500">[BEAT_SYNCED]</span> : <span className="text-amber-500 animate-pulse">[HEARTBEAT_DROPPED]</span>}</span>
+          <span className="text-[8px] animate-pulse text-emerald-500">LIVE_STREAM</span>
+        </h3>
+        <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
+          <span className="text-slate-500">Offline Telemetry Buffer</span>
+          <span className={telemetryBuffer.length > 0 ? "text-amber-500 font-bold" : "text-emerald-500 font-bold"}>
+            {telemetryBuffer.length} {telemetryBuffer.length >= 100 ? '(MAX)' : ''}
+          </span>
+        </div>
+      </div>
       
       <div className="space-y-5 shrink-0">
         {stats.map((stat, i) => {
