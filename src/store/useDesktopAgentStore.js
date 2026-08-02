@@ -1,13 +1,16 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { aximCoreClient } from '../lib/supabaseClient.js';
 
-export const useDesktopAgentStore = create((set, get) => ({
+export const useDesktopAgentStore = create(
+  persist(
+    (set, get) => ({
   walletConnected: false,
   isLiveChannelConnected: false,
   currentView: 'HUD',
-  cpuHistory: [],
-  memoryHistory: [],
-  latencyHistory: [],
+  cpuHistory: Array(30).fill(0),
+  memoryHistory: Array(30).fill(0),
+  latencyHistory: Array(30).fill(0),
   operatorAddress: "0x742d...444",
   operatorRole: null,
   activeTaskId: null,
@@ -201,9 +204,9 @@ export const useDesktopAgentStore = create((set, get) => ({
   })),
 
   recordOfflineTelemetryGap: () => set((state) => ({
-    cpuHistory: [...state.cpuHistory, null].slice(-20),
-    memoryHistory: [...state.memoryHistory, null].slice(-20),
-    latencyHistory: [...state.latencyHistory, null].slice(-20)
+    cpuHistory: [...state.cpuHistory, null].slice(-30),
+    memoryHistory: [...state.memoryHistory, null].slice(-30),
+    latencyHistory: [...state.latencyHistory, null].slice(-30)
   })),
 
   updateCloudflareMetrics: (data) => set((state) => {
@@ -288,9 +291,9 @@ export const useDesktopAgentStore = create((set, get) => ({
       cpuLoad: newCpu,
       memoryUsage: newMemory,
       networkLatencyMs: newLatency,
-      cpuHistory: [...state.cpuHistory, newCpu].slice(-20),
-      memoryHistory: [...state.memoryHistory, newMemory].slice(-20),
-      latencyHistory: [...state.latencyHistory, newLatency].slice(-20),
+      cpuHistory: [...state.cpuHistory, newCpu].slice(-30),
+      memoryHistory: [...state.memoryHistory, newMemory].slice(-30),
+      latencyHistory: [...state.latencyHistory, newLatency].slice(-30),
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
       pendingApprovals: newPendingApprovals,
@@ -324,9 +327,9 @@ export const useDesktopAgentStore = create((set, get) => ({
       cpuLoad: newCpu,
       memoryUsage: newMemory,
       networkLatencyMs: newLatency,
-      cpuHistory: [...state.cpuHistory, newCpu].slice(-20),
-      memoryHistory: [...state.memoryHistory, newMemory].slice(-20),
-      latencyHistory: [...state.latencyHistory, newLatency].slice(-20),
+      cpuHistory: [...state.cpuHistory, newCpu].slice(-30),
+      memoryHistory: [...state.memoryHistory, newMemory].slice(-30),
+      latencyHistory: [...state.latencyHistory, newLatency].slice(-30),
       cfCacheStatus: newStatus,
       cfRayId: newRayId,
       actionLogs: currentActionLogs
@@ -434,9 +437,9 @@ export const useDesktopAgentStore = create((set, get) => ({
       });
     }
     set({
-    cpuHistory: [],
-    memoryHistory: [],
-    latencyHistory: [],
+    cpuHistory: Array(30).fill(0),
+    memoryHistory: Array(30).fill(0),
+    latencyHistory: Array(30).fill(0),
     localQueueCount: 0, // Force buffer queue to 0 on emergency cache wipe
     threatCount: 0,
     cpuLoad: 0,
@@ -487,4 +490,11 @@ export const useDesktopAgentStore = create((set, get) => ({
       ...state.actionLogs
     ]
   }))
-}));
+    }),
+    {
+      name: 'onyx-desktop-storage',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ messages: state.messages, logFilter: state.logFilter, isAutoScrollEnabled: state.isAutoScrollEnabled })
+    }
+  )
+);
