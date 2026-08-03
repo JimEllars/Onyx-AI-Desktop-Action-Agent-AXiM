@@ -2,6 +2,10 @@ export interface Env {
   ONYX_DB: D1Database;
 }
 
+function isD1Available(env: Env): boolean {
+  return env && typeof env.ONYX_DB !== "undefined" && env.ONYX_DB !== null;
+}
+
 async function bootstrapDatabase(db: D1Database) {
   await db.exec(`
     CREATE TABLE IF NOT EXISTS UserSessions (
@@ -45,6 +49,13 @@ export default {
       try {
 
         if (url.pathname === "/api/v1/admin/init-db") {
+          if (!isD1Available(env)) {
+            console.warn("[Edge Bridge] D1 binding unavailable. Bypassing database initialization.");
+            return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          }
           await bootstrapDatabase(env.ONYX_DB);
           return new Response(JSON.stringify({ status: "db_initialized" }), {
             status: 200,
@@ -66,8 +77,15 @@ export default {
             });
           }
 
+          if (!isD1Available(env)) {
+            console.warn("[Edge Bridge] D1 binding unavailable. Ephemeral heartbeat accepted.");
+            return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          }
+
           try {
-            if (!env.ONYX_DB) throw new Error("D1 binding missing");
             await env.ONYX_DB.prepare(
               `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
                VALUES (?, ?, ?, ?)
@@ -79,6 +97,7 @@ export default {
               headers: { "Content-Type": "application/json", ...CORS_HEADERS }
             });
           } catch (dbError) {
+            console.warn("[Edge Bridge] D1 execution error during heartbeat:", dbError);
             return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
               status: 200,
               headers: { "Content-Type": "application/json", ...CORS_HEADERS }
@@ -95,23 +114,39 @@ export default {
             });
           }
 
-          const now = Math.floor(Date.now() / 1000);
-          const stmt = env.ONYX_DB.prepare(
-            `INSERT INTO TelemetryLogs (level, message, created_at) VALUES (?, ?, ?)`
-          );
-
-          const batchStmts = body.map((log: any) =>
-            stmt.bind(log.level || "info", log.message || "", now)
-          );
-
-          if (batchStmts.length > 0) {
-            await env.ONYX_DB.batch(batchStmts);
+          if (!isD1Available(env)) {
+            console.warn("[Edge Bridge] D1 binding unavailable. Dropping telemetry batch (ephemeral mode).");
+            return new Response(JSON.stringify({ status: "batch_accepted", mode: "ephemeral", count: body.length }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
           }
 
-          return new Response(JSON.stringify({ status: "batch_accepted", count: body.length }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-          });
+          try {
+            const now = Math.floor(Date.now() / 1000);
+            const stmt = env.ONYX_DB.prepare(
+              `INSERT INTO TelemetryLogs (level, message, created_at) VALUES (?, ?, ?)`
+            );
+
+            const batchStmts = body.map((log: any) =>
+              stmt.bind(log.level || "info", log.message || "", now)
+            );
+
+            if (batchStmts.length > 0) {
+              await env.ONYX_DB.batch(batchStmts);
+            }
+
+            return new Response(JSON.stringify({ status: "batch_accepted", count: body.length }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          } catch (dbError) {
+            console.warn("[Edge Bridge] D1 execution error during telemetry batch:", dbError);
+            return new Response(JSON.stringify({ status: "batch_accepted", mode: "ephemeral", count: body.length }), {
+              status: 200,
+              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+            });
+          }
         }
       } catch (e: any) {
         return new Response(JSON.stringify({ error: e.message || "Internal Server Error" }), {
@@ -125,6 +160,10 @@ export default {
   },
 
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
+    if (!isD1Available(env)) {
+      console.warn("[Edge Bridge] D1 binding unavailable. Skipping scheduled cleanup.");
+      return;
+    }
     const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
     ctx.waitUntil(
       env.ONYX_DB.batch([

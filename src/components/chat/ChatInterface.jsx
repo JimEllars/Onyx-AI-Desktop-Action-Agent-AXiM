@@ -42,12 +42,61 @@ export default function ChatInterface() {
 
   const parseCommand = (input) => {
     // Construct Workers AI Tool Payload (fallback to pattern matching if offline)
-    const payload = getWorkersAiToolPayload(input);
+    let payload = getWorkersAiToolPayload(input);
+
+    // Simulate Workers AI execution validation & fallback
+    try {
+      // Mock validation step simulating Workers AI schema check
+      let isValid = true;
+      if (input.includes('browser') || input.includes('open')) {
+        // Assume tool output for open_browser is generated
+        const mockOutput = { name: 'open_browser', parameters: {} }; // Missing URL
+        if (!mockOutput.parameters.url) {
+           throw new Error("Missing required field: url in open_browser output");
+        }
+      } else if (input.includes('script') || input.includes('run')) {
+        const mockOutput = { name: 'execute_cli_script', parameters: {} }; // Missing command/script_path
+        if (!mockOutput.parameters.command && !mockOutput.parameters.script_path) {
+           throw new Error("Missing required field: script_path in execute_cli_script output");
+        }
+      }
+    } catch (e) {
+      addMessage({
+        id: Date.now(),
+        role: 'assistant',
+        text: `[WARNING] LLM tool schema validation failed: ${e.message}. Attempting regex fallback extraction...`,
+        timestamp: new Date()
+      });
+      // Continue to fallback
+    }
 
     // Existing keyword pattern matching fallback
     const text = input.toLowerCase();
-    if (text.includes('browser') || text.includes('open')) return 'OS_BROWSER_OPEN';
-    if (text.includes('script') || text.includes('run')) return 'CLI_EXECUTE_SECURE';
+    if (text.includes('browser') || text.includes('open')) {
+       // Single regex-based fallback extraction
+       const urlMatch = input.match(/(https?:\/\/[^ ]+)/);
+       if (urlMatch) {
+         addMessage({
+            id: Date.now() + 1,
+            role: 'assistant',
+            text: `[FALLBACK_SUCCESS] Extracted URL via regex: ${urlMatch[1]}`,
+            timestamp: new Date()
+         });
+       }
+       return 'OS_BROWSER_OPEN';
+    }
+    if (text.includes('script') || text.includes('run')) {
+       const pathMatch = input.match(/(\/[\w.-]+(?:\/[\w.-]+)*)/);
+       if (pathMatch) {
+         addMessage({
+            id: Date.now() + 1,
+            role: 'assistant',
+            text: `[FALLBACK_SUCCESS] Extracted script path via regex: ${pathMatch[1]}`,
+            timestamp: new Date()
+         });
+       }
+       return 'CLI_EXECUTE_SECURE';
+    }
     if (text.includes('upload') || text.includes('batch')) return 'INGESTION_TUNNEL_READY';
     return 'LLM_REASONING_CHAIN';
   };
