@@ -56,6 +56,27 @@ export default function BatchIngressZone() {
 
             <DropZone targetApplication={targetApplication} />
 
+            {/* Knowledge Vector Engine (Progress Bar) */}
+            <div className="bg-slate-900/40 border border-slate-800 text-[10px] font-mono p-5 rounded-xl space-y-4 shadow-md backdrop-blur-md">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-3">Knowledge Vector Engine</h3>
+              <div className="flex flex-col gap-2">
+                <div className="flex justify-between items-center text-[10px] text-slate-400 font-bold tracking-widest">
+                  <span>VECTOR_INGESTION_STATUS</span>
+                  {localQueueCount > 0 ? (
+                    <span className="text-amber-400 animate-pulse">[QUEUE_DEPTH: {localQueueCount}]</span>
+                  ) : (
+                    <span className="text-emerald-400">[IDLE_STANDBY]</span>
+                  )}
+                </div>
+                <div className="w-full h-1 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div
+                    className="h-full bg-emerald-500 transition-all duration-500"
+                    style={{ width: localQueueCount === 0 ? '100%' : `${Math.max(10, 100 - localQueueCount)}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Cluster Mesh Fleet Nodes Matrix */}
             <div className="bg-slate-900/40 border border-slate-800 text-[10px] font-mono p-5 rounded-xl space-y-4 shadow-md backdrop-blur-md">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-3">Cluster Mesh Fleet Nodes Matrix</h3>

@@ -77,6 +77,10 @@ export const useDesktopAgentStore = create(
       ? '[CONNECT] Multi-modal discussion loop activated. Synthetic audio-response bridge engaged...'
       : '[SYSTEM] Reverting conversation link to baseline text-input channels.';
 
+    if ((get().communicationMode === 'AUDIO_ONLY' || get().communicationMode === 'DISCUSSION') && mode === 'TEXT') {
+      get().addActionLog({ type: 'network', text: `[WEBRTC_CALLS] Terminated active Cloudflare Calls media peer session. Reverting to secure text channel.` });
+    }
+
     set((state) => ({
       communicationMode: mode,
       actionLogs: [{ id: Date.now(), type: 'network', text: traceText, timestamp: new Date() }, ...state.actionLogs].slice(0, 50)
@@ -437,6 +441,7 @@ export const useDesktopAgentStore = create(
       });
     }
     set({
+    messages: [{ id: Date.now(), role: 'assistant', text: 'System memory cache, WebRTC nodes, and conversation buffers have been cleanly wiped. Standing by for secure operator input.' }],
     cpuHistory: Array(30).fill(0),
     memoryHistory: Array(30).fill(0),
     latencyHistory: Array(30).fill(0),
