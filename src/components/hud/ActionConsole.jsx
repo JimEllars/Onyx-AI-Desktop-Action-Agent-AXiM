@@ -112,7 +112,7 @@ export default function ActionConsole({ className = "" }) {
         </div>
       </div>
       {/* Setting flex-col-reverse so that standard prepend order makes items flow bottom up if needed, or just let it scroll normally */}
-      <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col max-h-[140px] min-h-[100px] pr-1">
+      <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col min-h-[100px] pr-1">
         <div className="mt-auto flex flex-col space-y-3">
         <AnimatePresence initial={false}>
           {filteredLogs.length === 0 && (

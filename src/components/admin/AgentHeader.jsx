@@ -8,7 +8,7 @@ export default function AgentHeader() {
   const { clearThreats,  localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, cloudflareEdgeNode, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
 
   return (
-    <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0">
+    <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0" data-tauri-drag-region="true">
       <div className="flex items-center gap-4">
         <div className="w-10 h-10 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-center">
           <SafeIcon icon={FiShield} className="text-xl text-emerald-400 shadow-[0_0_10px_#10b981]" />
