@@ -65,6 +65,14 @@ export default function SystemSidebar() {
             {telemetryBuffer.length} {telemetryBuffer.length >= 100 ? '(MAX)' : ''}
           </span>
         </div>
+        <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
+          <span className="text-slate-500">Audio Trunk Security</span>
+          {(communicationMode === 'AUDIO_ONLY' || communicationMode === 'DISCUSSION') ? (
+            <span className="text-red-500 font-bold animate-pulse">[MIC: LIVE_PROXY]</span>
+          ) : (
+            <span className="text-emerald-500 font-bold">[MIC: SECURED]</span>
+          )}
+        </div>
       </div>
       
       <div className="space-y-5 shrink-0">
