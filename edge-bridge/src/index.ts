@@ -105,6 +105,18 @@ export default {
           }
         }
 
+        if (url.pathname === "/api/v1/jules/sessions") {
+          const body = await request.json() as { prompt?: string };
+          return new Response(JSON.stringify({
+            status: "session_queued",
+            endpoint: "jules.googleapis.com",
+            prompt_received: !!body.prompt
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+          });
+        }
+
         if (url.pathname === "/api/v1/telemetry/batch") {
           const body = await request.json();
           if (!Array.isArray(body)) {

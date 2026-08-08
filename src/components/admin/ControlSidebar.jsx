@@ -33,11 +33,20 @@ export default function ControlSidebar() {
     addActionLog({ type: 'system', text: '[CLOUDFLARE_EDGE] Initiating asynchronous EOD encrypted flush sequence to public.memory_banks' });
     addActionLog({ type: 'network', text: '[CONNECT] Tunneling encrypted payload packet through Cloudflare Worker node at endpoint: /api/v1/desktop/archive...' });
 
-    await new Promise(resolve => setTimeout(resolve, 800));
-
-    clearLocalBufferQueue();
-    addActionLog({ type: 'success', text: '[CLOUDFLARE_EDGE] Matrix synchronization complete. Storage sequence finalized.' });
-    setIsFlushing(false);
+    try {
+      const status = await useDesktopAgentStore.getState().flushTelemetryBatch();
+      if (status === 'success') {
+        addActionLog({ type: 'success', text: '[CLOUDFLARE_EDGE] Manual EOD flush complete. Synchronized pending telemetry batch to edge.' });
+      } else {
+        clearLocalBufferQueue();
+        addActionLog({ type: 'warning', text: '[CLOUDFLARE_EDGE] Flush fallback. Local buffer queue cleared to prevent lockup.' });
+      }
+    } catch (e) {
+      clearLocalBufferQueue();
+      addActionLog({ type: 'warning', text: '[CLOUDFLARE_EDGE] Flush exception. Local buffer queue cleared to prevent lockup.' });
+    } finally {
+      setIsFlushing(false);
+    }
   };
 
   const handleProcessBuffer = async () => {
