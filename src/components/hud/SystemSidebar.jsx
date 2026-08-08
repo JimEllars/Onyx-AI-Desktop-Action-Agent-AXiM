@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer } = useDesktopAgentStore();
+  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState } = useDesktopAgentStore();
 
 
 
@@ -64,6 +64,10 @@ export default function SystemSidebar() {
           <span className={telemetryBuffer.length > 0 ? "text-amber-500 font-bold" : "text-emerald-500 font-bold"}>
             {telemetryBuffer.length} {telemetryBuffer.length >= 100 ? '(MAX)' : ''}
           </span>
+        </div>
+        <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
+          <span className="text-slate-500">Jules Code Agent</span>
+          <span className="text-cyan-400 font-bold font-mono">[{julesSessionState}]</span>
         </div>
         <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
           <span className="text-slate-500">Audio Trunk Security</span>

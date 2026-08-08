@@ -18,6 +18,7 @@ export const useDesktopAgentStore = create(
   threatCount: 0,
   networkLatencyMs: 24,
   systemStatus: 'AUTHENTICATING',
+  julesSessionState: 'IDLE',
   targetApplication: 'green_machine',
   communicationMode: 'TEXT',
   localNodeId: 'AXIM-NODE-LAX-01',
@@ -364,7 +365,7 @@ export const useDesktopAgentStore = create(
 
   flushTelemetryBatch: async () => {
     const buffer = useDesktopAgentStore.getState().telemetryBuffer;
-    if (buffer.length === 0) return;
+    if (buffer.length === 0) return 'empty';
 
     try {
       const response = await fetch('/api/v1/telemetry/batch', {
@@ -375,8 +376,12 @@ export const useDesktopAgentStore = create(
         body: JSON.stringify(buffer)
       });
       if (response.ok) {
+        const data = await response.json().catch(() => ({}));
         set({ telemetryBuffer: [], telemetryRetryCount: 0 });
+        if (data.mode === 'ephemeral') return 'ephemeral';
+        return 'success';
       }
+      return 'error';
     } catch (e) {
       set((state) => {
         const newCount = state.telemetryRetryCount + 1;
@@ -386,6 +391,7 @@ export const useDesktopAgentStore = create(
         }
         return { telemetryRetryCount: newCount };
       });
+      return 'error';
     }
   },
 
@@ -470,6 +476,7 @@ export const useDesktopAgentStore = create(
   },
 
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
+  setJulesSessionState: (state) => set({ julesSessionState: state }),
 
   setHeartbeatActive: (status) => set({ heartbeatActive: status }),
 
