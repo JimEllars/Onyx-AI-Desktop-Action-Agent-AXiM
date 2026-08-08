@@ -105,6 +105,18 @@ export default {
           }
         }
 
+        if (url.pathname === "/api/v1/jules/approve-plan") {
+          const body = await request.json() as { sessionId?: string };
+          return new Response(JSON.stringify({
+            status: "plan_approved",
+            session: body.sessionId || "sessions/default",
+            timestamp: new Date().toISOString()
+          }), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+          });
+        }
+
         if (url.pathname === "/api/v1/jules/sessions") {
           const body = await request.json() as { prompt?: string };
           return new Response(JSON.stringify({

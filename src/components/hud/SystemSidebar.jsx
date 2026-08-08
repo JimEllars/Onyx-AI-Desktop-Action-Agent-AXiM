@@ -14,6 +14,23 @@ export default function SystemSidebar() {
 
 
 
+  const getJulesStateClass = (state) => {
+    switch (state) {
+      case 'IN_PROGRESS':
+      case 'PLANNING':
+        return 'text-cyan-400 animate-pulse';
+      case 'AWAITING_PLAN_APPROVAL':
+        return 'text-amber-400 animate-pulse';
+      case 'COMPLETED':
+        return 'text-emerald-400 font-bold';
+      case 'FAILED':
+        return 'text-red-500 font-bold animate-pulse';
+      case 'IDLE':
+      default:
+        return 'text-slate-500';
+    }
+  };
+
   const degradedNodeCount = fleetNodes.filter(n => n.status.includes('OUT_OF_SYNC') || n.status.includes('ERROR')).length;
   const cycleAudioBitrate = () => {
     let nextBitrate;
@@ -67,7 +84,7 @@ export default function SystemSidebar() {
         </div>
         <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
           <span className="text-slate-500">Jules Code Agent</span>
-          <span className="text-cyan-400 font-bold font-mono">[{julesSessionState}]</span>
+          <span className={`font-bold font-mono ${getJulesStateClass(julesSessionState)}`}>[{julesSessionState}]</span>
         </div>
         <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
           <span className="text-slate-500">Audio Trunk Security</span>

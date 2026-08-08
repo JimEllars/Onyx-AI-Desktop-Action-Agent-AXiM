@@ -478,6 +478,31 @@ export const useDesktopAgentStore = create(
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
   setJulesSessionState: (state) => set({ julesSessionState: state }),
 
+  createJulesSession: async (prompt, requirePlanApproval = true) => {
+    set({ julesSessionState: 'PLANNING' });
+    get().addActionLog({ type: 'system', text: '[JULES_API] Initializing code agent session via Cloudflare Edge proxy...' });
+
+    try {
+      const res = await fetch('/api/v1/jules/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, requirePlanApproval })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        set({ julesSessionState: requirePlanApproval ? 'AWAITING_PLAN_APPROVAL' : 'IN_PROGRESS' });
+        get().addActionLog({ type: 'success', text: `[JULES_API] Session created. Session status: ${data.status}` });
+      } else {
+        throw new Error(data.error || 'Failed to create session');
+      }
+    } catch (error) {
+      set({ julesSessionState: 'FAILED' });
+      get().addActionLog({ type: 'error', text: `[JULES_API] Exception connecting to edge proxy: ${error.message}` });
+    }
+  },
+
   setHeartbeatActive: (status) => set({ heartbeatActive: status }),
 
   setTargetApp: (app) => set({ targetApplication: app }),
