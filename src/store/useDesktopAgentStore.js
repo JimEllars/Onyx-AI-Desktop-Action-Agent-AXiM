@@ -34,6 +34,7 @@ export const useDesktopAgentStore = create(
   cfRayId: '8b42f6ad120ea31c',
 
   telemetryBuffer: [],
+  telemetryRetryCount: 0,
   heartbeatActive: true,
   fleetNodes: [
     { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
@@ -374,10 +375,17 @@ export const useDesktopAgentStore = create(
         body: JSON.stringify(buffer)
       });
       if (response.ok) {
-        set({ telemetryBuffer: [] });
+        set({ telemetryBuffer: [], telemetryRetryCount: 0 });
       }
     } catch (e) {
-      // Silently capture network failures and leave buffer intact
+      set((state) => {
+        const newCount = state.telemetryRetryCount + 1;
+        if (newCount >= 3) {
+          get().addActionLog({ type: 'warning', text: '[TELEMETRY_WARN] Edge connection degraded. Offline telemetry buffer queuing locally.' });
+          return { telemetryRetryCount: 0 };
+        }
+        return { telemetryRetryCount: newCount };
+      });
     }
   },
 

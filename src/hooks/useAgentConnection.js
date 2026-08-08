@@ -87,6 +87,11 @@ export function useAgentConnection() {
             }
           }
         } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          useDesktopAgentStore.getState().addActionLog({
+            type: 'warning',
+            text: `[OFFLINE_RECOVERY] Realtime telemetry channel ${status.toLowerCase()}. Attempting edge reconnections...`
+          });
+          useDesktopAgentStore.getState().setLiveChannelConnected(false);
           console.error('[AGENT_CONNECTION] Channel subscription error or closed:', status);
           addActionLog({ type: 'warning', text: '[DISCONNECT] [CLOUDFLARE_EDGE] Real-time telemetry stream dropped. Falling back to local autopilot telemetry.' });
           setLiveChannelConnected(false);
