@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState } = useDesktopAgentStore();
+  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState, approveJulesPlan } = useDesktopAgentStore();
 
 
 
@@ -82,9 +82,17 @@ export default function SystemSidebar() {
             {telemetryBuffer.length} {telemetryBuffer.length >= 100 ? '(MAX)' : ''}
           </span>
         </div>
-        <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
+        <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1 flex-wrap">
           <span className="text-slate-500">Jules Code Agent</span>
           <span className={`font-bold font-mono ${getJulesStateClass(julesSessionState)}`}>[{julesSessionState}]</span>
+          {julesSessionState === 'AWAITING_PLAN_APPROVAL' && (
+            <button
+              onClick={() => approveJulesPlan()}
+              className="mt-1 w-full bg-amber-950/40 border border-amber-500/50 hover:bg-amber-900/60 text-amber-400 text-[8px] font-mono font-bold py-1 px-2 rounded transition-colors uppercase animate-pulse"
+            >
+              [APPROVE_JULES_PLAN]
+            </button>
+          )}
         </div>
         <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
           <span className="text-slate-500">Audio Trunk Security</span>
@@ -144,7 +152,8 @@ export default function SystemSidebar() {
           }
         >
           {autopilotActive ? '[AUTOPILOT_ACTIVE]' : '[MANUAL_OVERRIDE_LOCK]'}
-        </button>\n        <button
+        </button>
+        <button
           onClick={() => toggleWafMode()}
           className={
             wafStrictMode

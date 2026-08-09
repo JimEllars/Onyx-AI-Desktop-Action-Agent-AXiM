@@ -7,6 +7,19 @@ export function useAgentConnection() {
   const prevStatusRef = useRef(null);
   const heartbeatCountRef = useRef(0);
 
+
+  // Jules Activity Polling Effect
+  useEffect(() => {
+    const julesState = useDesktopAgentStore.getState().julesSessionState;
+    if (julesState !== 'IN_PROGRESS') return;
+
+    const intervalId = setInterval(() => {
+      useDesktopAgentStore.getState().pollJulesActivities('sessions/default');
+    }, 3000);
+
+    return () => clearInterval(intervalId);
+  }, [useDesktopAgentStore(state => state.julesSessionState)]);
+
   // Heartbeat Effect
   useEffect(() => {
     if (!walletConnected) return;
