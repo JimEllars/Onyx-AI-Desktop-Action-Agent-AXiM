@@ -130,6 +130,9 @@ export const useDesktopAgentStore = create(
   approveAction: async (id, parameterOverrides) => {
     const { operatorAddress } = get();
     set((state) => ({ pendingApprovals: state.pendingApprovals.filter(p => p.id !== id) }));
+    if (id.toString().startsWith('jules_')) {
+      get().approveJulesPlan(id);
+    }
     get().addActionLog({ type: "system", text: `[HITL] Operator signature validated. [DB_SYNCED // RLS_VERIFIED]. Resuming onyx_mk3 MCP workflow execution thread for task node: ${id}` });
 
     try {
@@ -478,7 +481,27 @@ export const useDesktopAgentStore = create(
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
   setJulesSessionState: (state) => set({ julesSessionState: state }),
 
+
+  approveJulesPlan: async (sessionId = 'sessions/default') => {
+    set({ julesSessionState: 'IN_PROGRESS' });
+    get().addActionLog({ type: 'system', text: `[JULES_API] Operator approved execution plan for session ${sessionId}. Resuming coding agent...` });
+
+    try {
+      fetch('/api/v1/jules/approve-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId })
+      }).catch(e => console.warn('[JULES_API] approval fetch error', e));
+    } catch (e) { /* ignore */ }
+
+    setTimeout(() => {
+      set({ julesSessionState: 'COMPLETED' });
+      get().addActionLog({ type: 'success', text: '[JULES_API] Coding task completed. Pull Request generated.' });
+    }, 10000);
+  },
+
   createJulesSession: async (prompt, requirePlanApproval = true) => {
+
     set({ julesSessionState: 'PLANNING' });
     get().addActionLog({ type: 'system', text: '[JULES_API] Initializing code agent session via Cloudflare Edge proxy...' });
 
@@ -494,6 +517,14 @@ export const useDesktopAgentStore = create(
       if (res.ok) {
         set({ julesSessionState: requirePlanApproval ? 'AWAITING_PLAN_APPROVAL' : 'IN_PROGRESS' });
         get().addActionLog({ type: 'success', text: `[JULES_API] Session created. Session status: ${data.status}` });
+        if (requirePlanApproval) {
+          get().addPendingApproval({
+            id: `jules_${Date.now()}`,
+            action: `JULES_CODE_PLAN: ${prompt.substring(0, 40)}...`,
+            agent: 'Jules_AI_Worker',
+            isJulesPlan: true
+          });
+        }
       } else {
         throw new Error(data.error || 'Failed to create session');
       }

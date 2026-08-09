@@ -111,6 +111,14 @@ export default function ChatInterface() {
     e.preventDefault();
     if (!input.trim()) return;
 
+    if (input.trim().startsWith('/jules ')) {
+      const julesPrompt = input.trim().slice(7);
+      addMessage({ role: 'user', text: input });
+      useDesktopAgentStore.getState().createJulesSession(julesPrompt, true);
+      setInput('');
+      return;
+    }
+
     updateCloudflareMetrics();
 
     const headers = {
