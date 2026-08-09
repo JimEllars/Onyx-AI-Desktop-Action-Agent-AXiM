@@ -45,6 +45,27 @@ export default {
       return new Response(null, { headers: CORS_HEADERS });
     }
 
+    if (request.method === "GET" || request.method === "POST") {
+      if (url.pathname === "/api/v1/jules/activities") {
+        return new Response(JSON.stringify({
+          activities: [
+            {
+              id: `act_${Date.now()}`,
+              originator: "agent",
+              agentMessaged: { agentMessage: "Analyzing repository files and applying code refactor..." },
+              artifacts: [
+                { bashOutput: { command: "npm run build", output: "Build succeeded with 0 errors.", exitCode: 0 } }
+              ],
+              createTime: new Date().toISOString()
+            }
+          ]
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+        });
+      }
+    }
+
     if (request.method === "POST") {
       try {
 

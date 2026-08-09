@@ -266,6 +266,16 @@ export default function ChatInterface() {
                     [VECTOR_ROUTE // OS_BROWSER_OPEN]
                   </div>
                 )}
+                {msg.isJulesActivity && msg.activityType === 'BASH_OUTPUT' && (
+                  <div className="mb-2">
+                    <span className="text-[8px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-1.5 py-0.5 rounded uppercase font-bold mr-2">[JULES_AGENT // BASH_OUTPUT]</span>
+                  </div>
+                )}
+                {msg.isJulesActivity && msg.activityType === 'AGENT_MESSAGE' && (
+                  <div className="mb-2">
+                    <span className="text-[8px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-1.5 py-0.5 rounded uppercase font-bold mr-2">[JULES_AGENT // THOUGHT_CHAIN]</span>
+                  </div>
+                )}
                 {msg.role === 'assistant' && msg.text.includes("PowerShell") && (
                   <div className="mb-2 inline-block text-amber-500 text-[9px] font-bold tracking-widest border border-amber-800 bg-amber-950/40 px-2 py-0.5 rounded">
                     [TERMINAL_EXEC // CLI_EXECUTE_SECURE]
@@ -281,7 +291,7 @@ export default function ChatInterface() {
                     TTFT: 142ms // TENSOR_CACHE_HIT
                   </span>
                 )}
-                <span className={msg.role === 'assistant' && (msg.text.includes("browser environment") || msg.text.includes("PowerShell")) ? "block inline" : "inline"}>{msg.text}</span>
+                <span className={msg.role === 'assistant' && (msg.text.includes("browser environment") || msg.text.includes("PowerShell")) ? "block inline" : msg.isJulesActivity && msg.activityType === 'BASH_OUTPUT' ? "block whitespace-pre-wrap mt-1 font-mono text-xs" : msg.isJulesActivity ? "block mt-1" : "inline"}>{msg.text}</span>
               </div>
             </motion.div>
           ))}
