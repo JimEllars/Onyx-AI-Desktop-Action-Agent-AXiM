@@ -503,6 +503,53 @@ export const useDesktopAgentStore = create(
     }
   },
 
+  pollJulesActivities: async (sessionId) => {
+    try {
+      const res = await fetch(`/api/v1/jules/activities?session=${sessionId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.activities && Array.isArray(data.activities)) {
+        set((state) => {
+          let newMessages = [...state.messages];
+          let messagesUpdated = false;
+          data.activities.forEach(activity => {
+            const existingMessage = newMessages.find(m => m.id === activity.id);
+            if (!existingMessage) {
+              if (activity.agentMessaged?.agentMessage) {
+                newMessages.push({
+                  id: activity.id,
+                  role: "assistant",
+                  text: activity.agentMessaged.agentMessage,
+                  isJulesActivity: true,
+                  activityType: "AGENT_MESSAGE",
+                  timestamp: new Date(activity.createTime)
+                });
+                messagesUpdated = true;
+              }
+              if (activity.artifacts && activity.artifacts.length > 0) {
+                const bashArtifact = activity.artifacts.find(a => a.bashOutput);
+                if (bashArtifact) {
+                  newMessages.push({
+                    id: activity.id + "_bash",
+                    role: "assistant",
+                    text: `$ ${bashArtifact.bashOutput.command}\n${bashArtifact.bashOutput.output}`,
+                    isJulesActivity: true,
+                    activityType: "BASH_OUTPUT",
+                    timestamp: new Date(activity.createTime)
+                  });
+                  messagesUpdated = true;
+                }
+              }
+            }
+          });
+          return messagesUpdated ? { messages: newMessages } : {};
+        });
+      }
+    } catch (err) {
+      console.warn("[JULES_API] Activity poll failed:", err);
+    }
+  },
+
   setHeartbeatActive: (status) => set({ heartbeatActive: status }),
 
   setTargetApp: (app) => set({ targetApplication: app }),
