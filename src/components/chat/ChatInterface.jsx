@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiCommand, FiTerminal } from 'react-icons/fi';
+import { FiSend, FiCommand, FiTerminal, FiExternalLink } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 import NeuralInterface from '../hud/NeuralInterface';
@@ -281,19 +281,22 @@ export default function ChatInterface() {
                 )}
                 {msg.isJulesActivity && msg.activityType === 'PULL_REQUEST' && (
                   <div className="mb-2 p-3 bg-purple-950/30 border border-purple-800/50 rounded-lg space-y-2">
-                    <div className="flex items-center">
-                      <span className="text-[8px] font-mono text-purple-400 bg-purple-950/60 border border-purple-800/60 px-1.5 py-0.5 rounded uppercase font-bold mr-2">
-                        [JULES_AGENT // PULL_REQUEST]
-                      </span>
-                      <span className="text-xs font-bold text-purple-200">{msg.prTitle}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span className="text-[8px] font-mono text-purple-400 bg-purple-950/60 border border-purple-800/60 px-1.5 py-0.5 rounded uppercase font-bold mr-2">
+                          [JULES_AGENT // PULL_REQUEST]
+                        </span>
+                        <span className="text-xs font-bold text-purple-200">{msg.prTitle}</span>
+                      </div>
                     </div>
                     <a
                       href={msg.prUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono"
+                      className="inline-flex items-center gap-1.5 text-[9px] font-mono font-bold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-800/60 px-2 py-1 rounded transition-all shadow-sm"
                     >
-                      View Pull Request on GitHub →
+                      <span>View Pull Request on GitHub</span>
+                      <SafeIcon icon={FiExternalLink} className="text-xs" />
                     </a>
                   </div>
                 )}
