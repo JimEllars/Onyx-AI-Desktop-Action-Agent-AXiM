@@ -46,6 +46,22 @@ export default {
     }
 
     if (request.method === "GET" || request.method === "POST") {
+      if (url.pathname === "/api/v1/jules/sources") {
+        return new Response(JSON.stringify({
+          sources: [{
+            name: "sources/github/axim-network/onyx-agent",
+            githubRepo: {
+              owner: "axim-network",
+              repo: "onyx-agent",
+              defaultBranch: { displayName: "main" }
+            }
+          }]
+        }), {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...CORS_HEADERS }
+        });
+      }
+
       if (url.pathname === "/api/v1/jules/activities") {
         return new Response(JSON.stringify({
           activities: [

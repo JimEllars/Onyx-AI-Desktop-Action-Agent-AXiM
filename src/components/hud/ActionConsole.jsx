@@ -65,7 +65,14 @@ export default function ActionConsole({ className = "" }) {
   return (
     <div className={`bg-slate-900/40 border border-slate-800 rounded-xl p-6 flex flex-col min-h-0 backdrop-blur-sm ${className}`}>
       <div className="flex justify-between items-center border-b border-slate-800 pb-2 mb-4">
-        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Action Ledger</h3>
+        <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center">
+          Action Ledger
+          {pendingApprovals.length > 0 && (
+            <span className="text-[8px] font-mono text-amber-400 bg-amber-950/60 border border-amber-500/60 px-2 py-0.5 rounded font-bold animate-pulse ml-2">
+              [HITL QUEUE: {pendingApprovals.length}]
+            </span>
+          )}
+        </h3>
         <div className="flex gap-2">
           <button
             onClick={handleExport}
