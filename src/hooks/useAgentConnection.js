@@ -11,6 +11,13 @@ export function useAgentConnection() {
   // Jules Activity Polling Effect
   useEffect(() => {
     const julesState = useDesktopAgentStore.getState().julesSessionState;
+    if (julesState === 'IN_PROGRESS' || julesState === 'AWAITING_PLAN_APPROVAL') {
+      useDesktopAgentStore.getState().addActionLog({
+        type: 'system',
+        text: `[RECOVERY] Rehydrated active Jules session state (${julesState}). Auto-resuming activity polling loop...`
+      });
+    }
+
     if (julesState !== 'IN_PROGRESS') return;
 
     const intervalId = setInterval(() => {
