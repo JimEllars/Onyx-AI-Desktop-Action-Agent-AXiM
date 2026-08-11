@@ -279,6 +279,24 @@ export default function ChatInterface() {
                     <span className="text-[8px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-1.5 py-0.5 rounded uppercase font-bold mr-2">[JULES_AGENT // BASH_OUTPUT]</span>
                   </div>
                 )}
+                {msg.isJulesActivity && msg.activityType === 'PULL_REQUEST' && (
+                  <div className="mb-2 p-3 bg-purple-950/30 border border-purple-800/50 rounded-lg space-y-2">
+                    <div className="flex items-center">
+                      <span className="text-[8px] font-mono text-purple-400 bg-purple-950/60 border border-purple-800/60 px-1.5 py-0.5 rounded uppercase font-bold mr-2">
+                        [JULES_AGENT // PULL_REQUEST]
+                      </span>
+                      <span className="text-xs font-bold text-purple-200">{msg.prTitle}</span>
+                    </div>
+                    <a
+                      href={msg.prUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono"
+                    >
+                      View Pull Request on GitHub →
+                    </a>
+                  </div>
+                )}
                 {msg.isJulesActivity && msg.activityType === 'AGENT_MESSAGE' && (
                   <div className="mb-2">
                     <span className="text-[8px] font-mono text-cyan-400 bg-cyan-950/40 border border-cyan-800/40 px-1.5 py-0.5 rounded uppercase font-bold mr-2">[JULES_AGENT // THOUGHT_CHAIN]</span>
