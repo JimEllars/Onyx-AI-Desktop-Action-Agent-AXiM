@@ -121,12 +121,6 @@ export default function ChatInterface() {
 
     updateCloudflareMetrics();
 
-    const headers = {
-      'Content-Type': 'application/json',
-      'x-session-affinity': `ses_${operatorAddress || 'lax_primary'}`,
-      'X-AXiM-Internal-Auth': import.meta.env.VITE_AXIM_INTERNAL_KEY || ''
-    };
-
     addActionLog({ type: 'network', text: `[CLOUDFLARE_EDGE] Attached session affinity key [ses_${(operatorAddress || 'lax_primary').substring(0, 8)}] for prompt tensor cache reuse.` });
 
     addActionLog({ type: 'network', text: `[CONNECT] Routing instruction packet through Cloudflare edge worker tunnel at ray: [${useDesktopAgentStore.getState().cfRayId.substring(0, 8)}...]` });

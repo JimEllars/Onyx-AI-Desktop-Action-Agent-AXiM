@@ -1,27 +1,46 @@
 import React, { useState } from 'react';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 import { motion } from 'framer-motion';
+import { aximCoreClient, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 export default function LoginGateway() {
   const { loginUser } = useDesktopAgentStore();
   const [isLoading, setIsLoading] = useState(false);
-  const [passkey, setPasskey] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [noticeMessage, setNoticeMessage] = useState('');
 
-  const handleLogin = () => {
-    if (passkey !== 'ONYX-ACCESS-2026' && passkey !== 'TEST') {
-      setErrorMessage('Access Denied: Invalid Security Handshake Signature registered at Edge');
+  const handleLogin = async () => {
+    if (!isSupabaseConfigured) {
+      setErrorMessage('Supabase authentication is not configured for this deployment.');
       return;
     }
 
     setErrorMessage('');
-
+    setNoticeMessage('');
     setIsLoading(true);
-    // Simulate loading thread loop
-    setTimeout(() => {
-      loginUser("0x742d...444");
+
+    const credentials = { email: email.trim(), password };
+    const { data, error } = isSignUp
+      ? await aximCoreClient.auth.signUp(credentials)
+      : await aximCoreClient.auth.signInWithPassword(credentials);
+
+    if (error) {
+      setErrorMessage(error.message);
       setIsLoading(false);
-    }, 10);
+      return;
+    }
+
+    if (!data.session) {
+      setNoticeMessage('Account created. Confirm your email before signing in.');
+      setIsLoading(false);
+      return;
+    }
+
+    loginUser(data.user.email || data.user.id);
+    setIsLoading(false);
   };
 
   return (
@@ -35,14 +54,14 @@ export default function LoginGateway() {
         className="relative z-10 w-full max-w-md bg-slate-900 border border-emerald-500/30 p-8 rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.1)]"
       >
         <div className="text-center mb-8">
-          <h1 className="text-xl font-bold tracking-widest text-emerald-400 mb-2">OnyX Mk3 // SECURE AUTHENTICATION REQUIRED</h1>
+          <h1 className="text-xl font-bold tracking-widest text-emerald-400 mb-2">OnyX Mk3 // OPERATOR SIGN-IN</h1>
           <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent w-full mt-4"></div>
         </div>
 
         <div className="flex flex-col gap-6">
           <div className="bg-slate-950 p-4 border border-slate-800 rounded text-sm text-slate-400">
-            <p className="mb-2">SYSTEM: Authentication gateway active.</p>
-            <p>AWAITING: Valid SIWE cryptographic handshake.</p>
+            <p className="mb-2">SYSTEM: Supabase Auth gateway active.</p>
+            <p>AWAITING: Authorized operator credentials.</p>
           </div>
 
           {errorMessage && (
@@ -51,14 +70,29 @@ export default function LoginGateway() {
             </div>
           )}
 
+          {noticeMessage && (
+            <div className="bg-emerald-950/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold font-mono tracking-wide p-3 rounded text-center">
+              {noticeMessage}
+            </div>
+          )}
+
           <input
-            type="password"
-            value={passkey}
-            onChange={(e) => setPasskey(e.target.value)}
-            placeholder="Operator Authorization Passkey"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Operator Email"
+            autoComplete="email"
             className="w-full bg-slate-950 border border-slate-800 rounded p-3 text-emerald-400 placeholder-slate-600 focus:border-emerald-500 focus:outline-none transition-colors"
           />
 
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            autoComplete={isSignUp ? 'new-password' : 'current-password'}
+            className="w-full bg-slate-950 border border-slate-800 rounded p-3 text-emerald-400 placeholder-slate-600 focus:border-emerald-500 focus:outline-none transition-colors"
+          />
           <button id="login-btn" data-testid="login-btn"
             onClick={handleLogin}
             disabled={isLoading}
@@ -74,11 +108,22 @@ export default function LoginGateway() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                VERIFYING SIGNATURE...
+                AUTHENTICATING...
               </>
             ) : (
-              'Connect Wallet & Sign Handshake (SIWE)'
+              isSignUp ? 'Create Operator Account' : 'Sign In'
             )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsSignUp((value) => !value);
+              setErrorMessage('');
+              setNoticeMessage('');
+            }}
+            className="text-xs text-slate-400 hover:text-emerald-400 transition-colors"
+          >
+            {isSignUp ? 'Already have an account? Sign in' : 'Need an account? Create one'}
           </button>
         </div>
       </motion.div>

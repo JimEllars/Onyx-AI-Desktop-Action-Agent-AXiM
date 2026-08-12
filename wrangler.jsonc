@@ -2,13 +2,5 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "onyx-ai-desktop-action-agent-axim",
   "compatibility_date": "2026-07-12",
-  "pages_build_output_dir": "dist",
-  "d1_databases": [
-    {
-      "binding": "ONYX_DB",
-      "database_name": "onyx-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "preview_database_id": "preview-0000-0000-0000-000000000000"
-    }
-  ]
+  "pages_build_output_dir": "dist"
 }
