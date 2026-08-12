@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSend, FiCommand, FiTerminal } from 'react-icons/fi';
+import { FiSend, FiExternalLink, FiCommand, FiTerminal } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 import NeuralInterface from '../hud/NeuralInterface';
@@ -285,10 +285,12 @@ export default function ChatInterface() {
                       href={msg.prUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono"
+                      className="inline-flex items-center gap-1.5 text-[9px] font-mono font-bold text-cyan-400 hover:text-cyan-300 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-800/60 px-2 py-1 rounded transition-all shadow-sm"
                     >
-                      View Pull Request on GitHub →
+                      <span>View Pull Request on GitHub</span>
+                      <SafeIcon icon={FiExternalLink} className="text-xs" />
                     </a>
+
                   </div>
                 )}
                 {msg.isJulesActivity && msg.activityType === 'AGENT_MESSAGE' && (
