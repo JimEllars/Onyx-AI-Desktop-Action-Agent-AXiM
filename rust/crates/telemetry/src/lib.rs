@@ -1,6 +1,8 @@
 use serde::Serialize;
 use reqwest::Client;
 
+const DEFAULT_EDGE_API_URL: &str = "https://onyx-edge.axim.us.com";
+
 #[derive(Debug)]
 pub enum TelemetryError {
     RequestFailed(reqwest::Error),
@@ -34,29 +36,37 @@ pub struct LogEntry {
 
 pub async fn send_session_heartbeat(session_id: &str, user_id: &str) -> Result<(), TelemetryError> {
     let client = Client::new();
-    let url = "https://onyx-ai-desktop-action-agent-axim.pages.dev/api/v1/session/heartbeat";
+    let url = format!(
+        "{}/api/v1/session/heartbeat",
+        option_env!("ONYX_EDGE_API_URL").unwrap_or(DEFAULT_EDGE_API_URL).trim_end_matches('/')
+    );
     let payload = HeartbeatPayload {
         session_id,
         user_id,
         client_version: env!("CARGO_PKG_VERSION"),
     };
 
-    let _res = client.post(url)
+    let response = client.post(url)
         .json(&payload)
         .send()
         .await?;
+    response.error_for_status()?;
 
     Ok(())
 }
 
 pub async fn send_telemetry_batch(logs: &[LogEntry]) -> Result<(), TelemetryError> {
     let client = Client::new();
-    let url = "https://onyx-ai-desktop-action-agent-axim.pages.dev/api/v1/telemetry/batch";
+    let url = format!(
+        "{}/api/v1/telemetry/batch",
+        option_env!("ONYX_EDGE_API_URL").unwrap_or(DEFAULT_EDGE_API_URL).trim_end_matches('/')
+    );
 
-    let _res = client.post(url)
+    let response = client.post(url)
         .json(&logs)
         .send()
         .await?;
+    response.error_for_status()?;
 
     Ok(())
 }

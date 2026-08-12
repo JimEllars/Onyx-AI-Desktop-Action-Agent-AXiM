@@ -2,235 +2,170 @@ export interface Env {
   ONYX_DB: D1Database;
 }
 
-function isD1Available(env: Env): boolean {
-  return env && typeof env.ONYX_DB !== "undefined" && env.ONYX_DB !== null;
+const ALLOWED_ORIGINS = new Set([
+  "https://onyx-ai-desktop-action-agent-axim.pages.dev",
+  "http://localhost:5173",
+]);
+
+function corsHeaders(request: Request): HeadersInit {
+  const origin = request.headers.get("Origin");
+  const headers: HeadersInit = {
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Vary": "Origin",
+  };
+
+  if (origin && ALLOWED_ORIGINS.has(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+
+  return headers;
 }
 
-async function bootstrapDatabase(db: D1Database) {
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS UserSessions (
-      session_id TEXT PRIMARY KEY,
-      user_id TEXT,
-      client_version TEXT,
-      last_seen INTEGER
-    );
-    CREATE TABLE IF NOT EXISTS TelemetryLogs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      level TEXT,
-      message TEXT,
-      created_at INTEGER
-    );
-    CREATE TABLE IF NOT EXISTS CommandAuditLogs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      command TEXT,
-      executed_by TEXT,
-      created_at INTEGER
-    );
-  `);
+function json(request: Request, body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders(request) },
+  });
 }
 
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Cache-Control": "public, max-age=60" // leverage edge caching for 60s
-};
+function validTelemetryEntry(entry: unknown): entry is { level?: string; message?: string } {
+  if (!entry || typeof entry !== "object") {
+    return false;
+  }
+
+  const { level, message } = entry as { level?: unknown; message?: unknown };
+  return (level === undefined || typeof level === "string") &&
+    typeof message === "string" &&
+    message.length <= 4_096;
+}
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
-    // Handle CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, { headers: CORS_HEADERS });
+      return new Response(null, { status: 204, headers: corsHeaders(request) });
     }
 
-    if (request.method === "GET" || request.method === "POST") {
-      if (url.pathname === "/api/v1/jules/sources") {
-        return new Response(JSON.stringify({
-          sources: [{
-            name: "sources/github/axim-network/onyx-agent",
-            githubRepo: {
-              owner: "axim-network",
-              repo: "onyx-agent",
-              defaultBranch: { displayName: "main" }
-            }
-          }]
-        }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-        });
-      }
-
-      if (url.pathname === "/api/v1/jules/activities") {
-        return new Response(JSON.stringify({
-          activities: [
-            {
-              id: `act_${Date.now()}`,
-              originator: "agent",
-              agentMessaged: { agentMessage: "Analyzing repository files and applying code refactor..." },
-              artifacts: [
-                { bashOutput: { command: "npm run build", output: "Build succeeded with 0 errors.", exitCode: 0 } }
-              ],
-              createTime: new Date().toISOString()
-            }
-          ]
-        }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-        });
-      }
+    if (request.method === "GET" && url.pathname === "/health") {
+      return json(request, { status: "ok" });
     }
 
-    if (request.method === "POST") {
-      try {
-
-        if (url.pathname === "/api/v1/admin/init-db") {
-          if (!isD1Available(env)) {
-            console.warn("[Edge Bridge] D1 binding unavailable. Bypassing database initialization.");
-            return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-          await bootstrapDatabase(env.ONYX_DB);
-          return new Response(JSON.stringify({ status: "db_initialized" }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-          });
-        }
-
-        if (url.pathname === "/api/v1/session/heartbeat") {
-          const body = await request.json() as { session_id?: string, user_id?: string, client_version?: string };
-          const sessionId = body.session_id;
-          const userId = body.user_id;
-          const clientVersion = body.client_version || "unknown";
-          const lastSeen = Math.floor(Date.now() / 1000);
-
-          if (!sessionId || !userId) {
-            return new Response(JSON.stringify({ error: "Missing session_id or user_id" }), {
-              status: 400,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-
-          if (!isD1Available(env)) {
-            console.warn("[Edge Bridge] D1 binding unavailable. Ephemeral heartbeat accepted.");
-            return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-
-          try {
-            await env.ONYX_DB.prepare(
-              `INSERT INTO UserSessions (session_id, user_id, client_version, last_seen)
-               VALUES (?, ?, ?, ?)
-               ON CONFLICT(session_id) DO UPDATE SET last_seen = ?`
-            ).bind(sessionId, userId, clientVersion, lastSeen, lastSeen).run();
-
-            return new Response(JSON.stringify({ status: "ok" }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          } catch (dbError) {
-            console.warn("[Edge Bridge] D1 execution error during heartbeat:", dbError);
-            return new Response(JSON.stringify({ status: "ok", mode: "ephemeral" }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-        }
-
-        if (url.pathname === "/api/v1/jules/approve-plan") {
-          const body = await request.json() as { sessionId?: string };
-          return new Response(JSON.stringify({
-            status: "plan_approved",
-            session: body.sessionId || "sessions/default",
-            timestamp: new Date().toISOString()
-          }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-          });
-        }
-
-        if (url.pathname === "/api/v1/jules/sessions") {
-          const body = await request.json() as { prompt?: string };
-          return new Response(JSON.stringify({
-            status: "session_queued",
-            endpoint: "jules.googleapis.com",
-            prompt_received: !!body.prompt
-          }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-          });
-        }
-
-        if (url.pathname === "/api/v1/telemetry/batch") {
-          const body = await request.json();
-          if (!Array.isArray(body)) {
-            return new Response(JSON.stringify({ error: "Payload must be an array" }), {
-              status: 400,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-
-          if (!isD1Available(env)) {
-            console.warn("[Edge Bridge] D1 binding unavailable. Dropping telemetry batch (ephemeral mode).");
-            return new Response(JSON.stringify({ status: "batch_accepted", mode: "ephemeral", count: body.length }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-
-          try {
-            const now = Math.floor(Date.now() / 1000);
-            const stmt = env.ONYX_DB.prepare(
-              `INSERT INTO TelemetryLogs (level, message, created_at) VALUES (?, ?, ?)`
-            );
-
-            const batchStmts = body.map((log: any) =>
-              stmt.bind(log.level || "info", log.message || "", now)
-            );
-
-            if (batchStmts.length > 0) {
-              await env.ONYX_DB.batch(batchStmts);
-            }
-
-            return new Response(JSON.stringify({ status: "batch_accepted", count: body.length }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          } catch (dbError) {
-            console.warn("[Edge Bridge] D1 execution error during telemetry batch:", dbError);
-            return new Response(JSON.stringify({ status: "batch_accepted", mode: "ephemeral", count: body.length }), {
-              status: 200,
-              headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-            });
-          }
-        }
-      } catch (e: any) {
-        return new Response(JSON.stringify({ error: e.message || "Internal Server Error" }), {
-          status: 500,
-          headers: { "Content-Type": "application/json", ...CORS_HEADERS }
-        });
-      }
+    if (request.method === "GET" && url.pathname === "/api/v1/jules/sources") {
+      return json(request, {
+        sources: [{
+          name: "sources/github/axim-network/onyx-agent",
+          githubRepo: {
+            owner: "axim-network",
+            repo: "onyx-agent",
+            defaultBranch: { displayName: "main" },
+          },
+        }],
+      });
     }
 
-    return new Response("Not Found", { status: 404 });
+    if (request.method === "GET" && url.pathname === "/api/v1/jules/activities") {
+      return json(request, {
+        activities: [{
+          id: `act_${Date.now()}`,
+          originator: "agent",
+          agentMessaged: { agentMessage: "Analyzing repository files and applying code refactor..." },
+          artifacts: [{
+            bashOutput: { command: "npm run build", output: "Build succeeded with 0 errors.", exitCode: 0 },
+          }],
+          createTime: new Date().toISOString(),
+        }],
+      });
+    }
+
+    if (request.method !== "POST") {
+      return json(request, { error: "Not found" }, 404);
+    }
+
+    if (url.pathname === "/api/v1/jules/approve-plan") {
+      const body = await request.json<{ sessionId?: unknown }>().catch(() => null);
+      return json(request, {
+        status: "plan_approved",
+        session: typeof body?.sessionId === "string" ? body.sessionId : "sessions/default",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (url.pathname === "/api/v1/jules/sessions") {
+      const body = await request.json<{ prompt?: unknown }>().catch(() => null);
+      if (!body || typeof body.prompt !== "string" || body.prompt.length === 0) {
+        return json(request, { error: "prompt is required" }, 400);
+      }
+
+      return json(request, {
+        status: "session_queued",
+        prompt_received: true,
+      });
+    }
+
+    if (url.pathname === "/api/v1/session/heartbeat") {
+      const body = await request.json<{
+        session_id?: unknown;
+        user_id?: unknown;
+        client_version?: unknown;
+      }>().catch(() => null);
+
+      if (!body || typeof body.session_id !== "string" || typeof body.user_id !== "string") {
+        return json(request, { error: "session_id and user_id are required" }, 400);
+      }
+
+      if (body.session_id.length > 256 || body.user_id.length > 256) {
+        return json(request, { error: "session_id or user_id is too long" }, 400);
+      }
+
+      const clientVersion = typeof body.client_version === "string"
+        ? body.client_version.slice(0, 128)
+        : "unknown";
+      const lastSeen = Math.floor(Date.now() / 1000);
+
+      ctx.waitUntil(
+        env.ONYX_DB.prepare(
+          `INSERT INTO user_sessions (session_id, user_id, client_version, last_seen)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(session_id) DO UPDATE SET
+             user_id = excluded.user_id,
+             client_version = excluded.client_version,
+             last_seen = excluded.last_seen`,
+        ).bind(body.session_id, body.user_id, clientVersion, lastSeen).run(),
+      );
+
+      return json(request, { status: "ok" });
+    }
+
+    if (url.pathname === "/api/v1/telemetry/batch") {
+      const body = await request.json<unknown>().catch(() => null);
+      if (!Array.isArray(body) || body.length > 100 || !body.every(validTelemetryEntry)) {
+        return json(request, { error: "Payload must contain at most 100 valid telemetry entries" }, 400);
+      }
+
+      const createdAt = Math.floor(Date.now() / 1000);
+      const statement = env.ONYX_DB.prepare(
+        "INSERT INTO telemetry_logs (level, message, created_at) VALUES (?, ?, ?)",
+      );
+      const entries = body.map((entry) =>
+        statement.bind(entry.level?.slice(0, 64) ?? "info", entry.message, createdAt)
+      );
+
+      if (entries.length > 0) {
+        await env.ONYX_DB.batch(entries);
+      }
+
+      return json(request, { status: "batch_accepted", count: entries.length });
+    }
+
+    return json(request, { error: "Not found" }, 404);
   },
 
-  async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
-    if (!isD1Available(env)) {
-      console.warn("[Edge Bridge] D1 binding unavailable. Skipping scheduled cleanup.");
-      return;
-    }
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
     const thirtyDaysAgo = Math.floor(Date.now() / 1000) - (30 * 24 * 60 * 60);
     ctx.waitUntil(
-      env.ONYX_DB.batch([
-        env.ONYX_DB.prepare("DELETE FROM TelemetryLogs WHERE created_at < ?").bind(thirtyDaysAgo),
-        env.ONYX_DB.prepare("DELETE FROM CommandAuditLogs WHERE created_at < ?").bind(thirtyDaysAgo),
-      ])
+      env.ONYX_DB.prepare("DELETE FROM telemetry_logs WHERE created_at < ?").bind(thirtyDaysAgo).run(),
     );
-  }
+  },
 };

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { aximCoreClient } from '../lib/supabaseClient.js';
+import { aximCoreClient, isSupabaseConfigured } from '../lib/supabaseClient.js';
+import { edgeFetch, isEdgeApiConfigured } from '../lib/edgeApi.js';
 import { useDesktopAgentStore } from '../store/useDesktopAgentStore.js';
 
 export function useAgentConnection() {
@@ -26,7 +27,7 @@ export function useAgentConnection() {
 
     const intervalId = setInterval(async () => {
       try {
-        await fetch('/api/v1/session/heartbeat', {
+        await edgeFetch('/api/v1/session/heartbeat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -54,10 +55,10 @@ export function useAgentConnection() {
       clearInterval(intervalId);
       clearInterval(telemetryIntervalId);
     };
-  }, [walletConnected, operatorAddress]);
+  }, [walletConnected, operatorAddress, isEdgeApiConfigured]);
 
   useEffect(() => {
-    if (!walletConnected) return;
+    if (!walletConnected || !isSupabaseConfigured) return;
 
     // Subscribe to the real-time agent_telemetry_stream channel
     const channel = aximCoreClient.channel('agent_telemetry_stream', { config: { broadcast: { ack: true } } });

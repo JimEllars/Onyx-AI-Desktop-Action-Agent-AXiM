@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { aximCoreClient } from '../lib/supabaseClient.js';
+import { aximCoreClient, isSupabaseConfigured } from '../lib/supabaseClient.js';
+import { edgeFetch } from '../lib/edgeApi.js';
 
 export const useDesktopAgentStore = create(
   persist(
@@ -372,7 +373,7 @@ export const useDesktopAgentStore = create(
     if (buffer.length === 0) return 'empty';
 
     try {
-      const response = await fetch('/api/v1/telemetry/batch', {
+      const response = await edgeFetch('/api/v1/telemetry/batch', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -400,7 +401,11 @@ export const useDesktopAgentStore = create(
   },
 
   subscribeToFleetRegistry: () => {
-       const channel = aximCoreClient
+     if (!isSupabaseConfigured) {
+       return () => {};
+     }
+
+     const channel = aximCoreClient
          .channel('fleet-registry-sync')
          .on('postgres_changes', {
            event: '*',
@@ -484,7 +489,7 @@ export const useDesktopAgentStore = create(
 
   fetchJulesSources: async () => {
     try {
-      const res = await fetch('/api/v1/jules/sources');
+      const res = await edgeFetch('/api/v1/jules/sources');
       if (res.ok) {
         const data = await res.json();
         if (data.sources && data.sources.length > 0 && data.sources[0].githubRepo) {
@@ -503,7 +508,7 @@ export const useDesktopAgentStore = create(
     get().addActionLog({ type: 'system', text: `[JULES_API] Operator approved execution plan for session ${sessionId}. Resuming coding agent...` });
 
     try {
-      fetch('/api/v1/jules/approve-plan', {
+      edgeFetch('/api/v1/jules/approve-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId })
@@ -522,7 +527,7 @@ export const useDesktopAgentStore = create(
     get().addActionLog({ type: 'system', text: '[JULES_API] Initializing code agent session via Cloudflare Edge proxy...' });
 
     try {
-      const res = await fetch('/api/v1/jules/sessions', {
+      const res = await edgeFetch('/api/v1/jules/sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt, requirePlanApproval })
@@ -552,7 +557,7 @@ export const useDesktopAgentStore = create(
 
   pollJulesActivities: async (sessionId) => {
     try {
-      const res = await fetch(`/api/v1/jules/activities?session=${sessionId}`);
+      const res = await edgeFetch(`/api/v1/jules/activities?session=${encodeURIComponent(sessionId)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data.activities && Array.isArray(data.activities)) {
@@ -607,7 +612,14 @@ export const useDesktopAgentStore = create(
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
   clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
   setActiveTaskId: (id) => set({ activeTaskId: id }),
-  logoutUser: () => set((state) => ({
+  logoutUser: (signOut = true) => {
+    if (signOut && aximCoreClient) {
+      aximCoreClient.auth.signOut().catch((error) => {
+        console.error('[AUTH] Failed to end the Supabase session:', error);
+      });
+    }
+
+    set((state) => ({
     walletConnected: false,
     operatorAddress: null,
     operatorRole: null,
@@ -618,14 +630,15 @@ export const useDesktopAgentStore = create(
       { id: Date.now(), type: 'system', text: `[IDENTITY] Session teardown complete. SIWE credentials and active channels cleared.`, timestamp: new Date() },
       ...state.actionLogs
     ]
-  })),
+    }));
+  },
   loginUser: (address) => set((state) => ({
     walletConnected: true,
     operatorAddress: address,
-    operatorRole: "Certified Engineer (SBT)",
+    operatorRole: "Authenticated Operator",
     systemStatus: 'READY',
     actionLogs: [
-      { id: Date.now(), type: 'system', text: `[IDENTITY] Cryptographic SIWE handshake verified via Cloudflare Access edge. Role claims mapped: Certified Engineer (SBT).`, timestamp: new Date() },
+      { id: Date.now(), type: 'system', text: `[IDENTITY] Supabase Auth session verified for operator ${address}.`, timestamp: new Date() },
       ...state.actionLogs
     ]
   }))
