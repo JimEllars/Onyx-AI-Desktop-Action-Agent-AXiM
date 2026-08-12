@@ -4,15 +4,19 @@ import { FiCpu, FiGlobe, FiLayers, FiActivity } from 'react-icons/fi';
 import SafeIcon from '../../common/SafeIcon';
 import TelemetryChart from './TelemetryChart';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState, approveJulesPlan } = useDesktopAgentStore();
+  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState, approveJulesPlan, julesSourceRepo, fetchJulesSources } = useDesktopAgentStore();
 
 
 
 
+
+  useEffect(() => {
+    fetchJulesSources();
+  }, [fetchJulesSources]);
 
   const getJulesStateClass = (state) => {
     switch (state) {
@@ -93,6 +97,10 @@ export default function SystemSidebar() {
               [APPROVE_JULES_PLAN]
             </button>
           )}
+        </div>
+        <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
+          <span className="text-slate-500">Bound Repository</span>
+          <span className="text-slate-300 font-mono font-semibold">{julesSourceRepo}</span>
         </div>
         <div className="flex justify-between items-center text-[9px] mt-1 border-b border-slate-800/50 pb-1">
           <span className="text-slate-500">Audio Trunk Security</span>

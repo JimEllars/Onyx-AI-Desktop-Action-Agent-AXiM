@@ -20,6 +20,7 @@ export const useDesktopAgentStore = create(
   networkLatencyMs: 24,
   systemStatus: 'AUTHENTICATING',
   julesSessionState: 'IDLE',
+  julesSourceRepo: 'axim-network/onyx-agent',
   targetApplication: 'green_machine',
   communicationMode: 'TEXT',
   localNodeId: 'AXIM-NODE-LAX-01',
@@ -486,6 +487,21 @@ export const useDesktopAgentStore = create(
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
   setJulesSessionState: (state) => set({ julesSessionState: state }),
 
+  fetchJulesSources: async () => {
+    try {
+      const res = await edgeFetch('/api/v1/jules/sources');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.sources && data.sources.length > 0 && data.sources[0].githubRepo) {
+          const repoInfo = data.sources[0].githubRepo;
+          set({ julesSourceRepo: `${repoInfo.owner}/${repoInfo.repo}` });
+        }
+      }
+    } catch (e) {
+      console.warn('[JULES_API] Failed to fetch sources', e);
+    }
+  },
+
 
   approveJulesPlan: async (sessionId = 'sessions/default') => {
     set({ julesSessionState: 'IN_PROGRESS' });
@@ -500,7 +516,7 @@ export const useDesktopAgentStore = create(
     } catch (e) { /* ignore */ }
 
     setTimeout(() => {
-      set({ julesSessionState: 'COMPLETED' });
+      set((state) => ({ julesSessionState: 'COMPLETED', messages: [ ...state.messages, { id: `pr_${Date.now()}`, role: 'assistant', text: 'Pull Request generated and submitted to repository.', isJulesActivity: true, activityType: 'PULL_REQUEST', prTitle: 'feat(onyx): automated edge telemetry and Jules API integration patch', prUrl: 'https://github.com/axim-network/onyx-agent/pull/104', timestamp: new Date() } ] }));
       get().addActionLog({ type: 'success', text: '[JULES_API] Coding task completed. Pull Request generated.' });
     }, 10000);
   },

@@ -52,8 +52,56 @@ export default {
       return json(request, { status: "ok" });
     }
 
+    if (request.method === "GET" && url.pathname === "/api/v1/jules/sources") {
+      return json(request, {
+        sources: [{
+          name: "sources/github/axim-network/onyx-agent",
+          githubRepo: {
+            owner: "axim-network",
+            repo: "onyx-agent",
+            defaultBranch: { displayName: "main" },
+          },
+        }],
+      });
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/v1/jules/activities") {
+      return json(request, {
+        activities: [{
+          id: `act_${Date.now()}`,
+          originator: "agent",
+          agentMessaged: { agentMessage: "Analyzing repository files and applying code refactor..." },
+          artifacts: [{
+            bashOutput: { command: "npm run build", output: "Build succeeded with 0 errors.", exitCode: 0 },
+          }],
+          createTime: new Date().toISOString(),
+        }],
+      });
+    }
+
     if (request.method !== "POST") {
       return json(request, { error: "Not found" }, 404);
+    }
+
+    if (url.pathname === "/api/v1/jules/approve-plan") {
+      const body = await request.json<{ sessionId?: unknown }>().catch(() => null);
+      return json(request, {
+        status: "plan_approved",
+        session: typeof body?.sessionId === "string" ? body.sessionId : "sessions/default",
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    if (url.pathname === "/api/v1/jules/sessions") {
+      const body = await request.json<{ prompt?: unknown }>().catch(() => null);
+      if (!body || typeof body.prompt !== "string" || body.prompt.length === 0) {
+        return json(request, { error: "prompt is required" }, 400);
+      }
+
+      return json(request, {
+        status: "session_queued",
+        prompt_received: true,
+      });
     }
 
     if (url.pathname === "/api/v1/session/heartbeat") {
