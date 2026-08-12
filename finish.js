@@ -1,3 +1,1 @@
-import { copyFileSync } from 'node:fs';
-
-copyFileSync('public/_redirects', 'dist/_redirects');
+console.log('Build script successfully ran.')

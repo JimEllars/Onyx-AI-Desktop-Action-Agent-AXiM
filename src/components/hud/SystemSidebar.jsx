@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 
 export default function SystemSidebar() {
   const [packetLoss, setPacketLoss] = useState("0.0%");
-  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState, approveJulesPlan, julesSourceRepo, fetchJulesSources } = useDesktopAgentStore();
+  const { heartbeatActive, fleetNodes, wafStrictMode, toggleWafMode, communicationMode, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, cfCacheStatus, cfRayId, autopilotActive, toggleAutopilot, addActionLog, audioBitrate, setAudioBitrate, telemetryBuffer, julesSessionState, approveJulesPlan, resetJulesSession, julesSourceRepo, fetchJulesSources } = useDesktopAgentStore();
 
 
 
@@ -95,6 +95,14 @@ export default function SystemSidebar() {
               className="mt-1 w-full bg-amber-950/40 border border-amber-500/50 hover:bg-amber-900/60 text-amber-400 text-[8px] font-mono font-bold py-1 px-2 rounded transition-colors uppercase animate-pulse"
             >
               [APPROVE_JULES_PLAN]
+            </button>
+          )}
+          {(julesSessionState === 'COMPLETED' || julesSessionState === 'FAILED') && (
+            <button
+              onClick={() => resetJulesSession()}
+              className="mt-1 w-full bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-400 hover:text-slate-200 text-[8px] font-mono font-bold py-0.5 px-2 rounded transition-colors uppercase cursor-pointer"
+            >
+              [RESET_AGENT_STATE]
             </button>
           )}
         </div>

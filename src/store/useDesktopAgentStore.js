@@ -486,6 +486,7 @@ export const useDesktopAgentStore = create(
 
   setLiveChannelConnected: (status) => set({ isLiveChannelConnected: status }),
   setJulesSessionState: (state) => set({ julesSessionState: state }),
+  resetJulesSession: () => set({ julesSessionState: 'IDLE' }),
 
   fetchJulesSources: async () => {
     try {
