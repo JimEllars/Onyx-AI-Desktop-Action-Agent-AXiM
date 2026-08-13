@@ -4,7 +4,7 @@ import { FiRefreshCw, FiTrash2, FiActivity } from 'react-icons/fi';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function ControlSidebar() {
-  const { clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount, checkFleetUpdates, subscribeToFleetRegistry } = useDesktopAgentStore();
+  const { telemetryBuffer, clearLocalBufferQueue, clearCacheBlocks, addActionLog, cpuLoad, memoryUsage, networkLatencyMs, cloudflareEdgeNode, activeTaskId, systemStatus, threatCount, cfCacheStatus, localQueueCount, checkFleetUpdates, subscribeToFleetRegistry } = useDesktopAgentStore();
   const [isFlushing, setIsFlushing] = useState(false);
   const [isProcessingBuffer, setIsProcessingBuffer] = useState(false);
   const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
@@ -76,11 +76,21 @@ export default function ControlSidebar() {
         
         <button
           onClick={handleForceFlush}
-          className={`w-full flex items-center justify-center gap-3 border px-4 py-3 text-xs font-bold rounded transition-all duration-150 ${isFlushing ? 'bg-cyan-900 border-cyan-500 text-cyan-200' : 'bg-slate-950 hover:bg-slate-900 border-slate-800 text-cyan-400 hover:border-cyan-900 hover:shadow-[0_0_10px_rgba(34,211,238,0.1)]'}`}
+          disabled={isFlushing}
+          className={`w-full py-2 px-3 border rounded text-[9px] font-mono font-bold tracking-wider transition-all uppercase flex justify-between items-center ${
+            telemetryBuffer.length > 0
+              ? 'bg-amber-950/20 border-amber-500/60 text-amber-400 hover:bg-amber-900/40 animate-pulse'
+              : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-emerald-500/50 hover:text-emerald-400'
+          }`}
         >
-          <SafeIcon icon={FiRefreshCw} />
-          Force Manual EOD Log Flush
+          <span>[FLUSH_IN_MEMORY_BUFFER]</span>
+          {telemetryBuffer.length > 0 && (
+            <span className="text-[8px] bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/40">
+              {telemetryBuffer.length} QUEUED
+            </span>
+          )}
         </button>
+
         
         <button
           onClick={handleProcessBuffer}

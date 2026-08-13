@@ -111,6 +111,13 @@ export default function ChatInterface() {
     e.preventDefault();
     if (!input.trim()) return;
 
+    if (input.trim().toLowerCase() === '/jules reset' || input.trim().toLowerCase() === '/reset') {
+      useDesktopAgentStore.getState().resetJulesSession();
+      addMessage({ role: 'assistant', text: '[SYSTEM] Jules Code Agent state has been reset to IDLE.' });
+      setInput('');
+      return;
+    }
+
     if (input.trim().startsWith('/jules ')) {
       const julesPrompt = input.trim().slice(7);
       addMessage({ role: 'user', text: input });

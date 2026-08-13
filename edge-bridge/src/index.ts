@@ -66,18 +66,21 @@ export default {
     }
 
     if (request.method === "GET" && url.pathname === "/api/v1/jules/activities") {
+      const sessionId = url.searchParams.get("session") || "sessions/default";
       return json(request, {
+        session: sessionId,
         activities: [{
           id: `act_${Date.now()}`,
           originator: "agent",
-          agentMessaged: { agentMessage: "Analyzing repository files and applying code refactor..." },
+          agentMessaged: { agentMessage: `[Session: ${sessionId}] Analyzing repository files and applying refactor...` },
           artifacts: [{
-            bashOutput: { command: "npm run build", output: "Build succeeded with 0 errors.", exitCode: 0 },
+            bashOutput: { command: "npm run test", output: "All 12 test suites passed cleanly.", exitCode: 0 }
           }],
           createTime: new Date().toISOString(),
         }],
       });
     }
+
 
     if (request.method !== "POST") {
       return json(request, { error: "Not found" }, 404);
