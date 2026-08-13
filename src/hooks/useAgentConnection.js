@@ -7,13 +7,15 @@ export function useAgentConnection() {
   const { setLiveTelemetry, walletConnected, setLiveChannelConnected, addActionLog, localQueueCount, clearLocalBufferQueue, operatorAddress, setHeartbeatActive } = useDesktopAgentStore();
   const prevStatusRef = useRef(null);
   const heartbeatCountRef = useRef(0);
+  const hasRecoveredRef = useRef(false);
 
 
   // Jules Activity Polling Effect
   useEffect(() => {
     const julesState = useDesktopAgentStore.getState().julesSessionState;
 
-    if (julesState === 'IN_PROGRESS' || julesState === 'AWAITING_PLAN_APPROVAL') {
+    if (!hasRecoveredRef.current && (julesState === 'IN_PROGRESS' || julesState === 'AWAITING_PLAN_APPROVAL')) {
+      hasRecoveredRef.current = true;
       useDesktopAgentStore.getState().addActionLog({
         type: 'system',
         text: `[RECOVERY] Rehydrated active Jules session state (${julesState}). Auto-resuming activity polling loop...`

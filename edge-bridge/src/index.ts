@@ -88,6 +88,12 @@ export default {
 
     if (url.pathname === "/api/v1/jules/approve-plan") {
       const body = await request.json<{ sessionId?: unknown }>().catch(() => null);
+      const createdAt = Math.floor(Date.now() / 1000);
+      ctx.waitUntil(
+        env.ONYX_DB.prepare(
+          "INSERT INTO telemetry_logs (level, message, created_at) VALUES (?, ?, ?)"
+        ).bind("info", `[JULES_EDGE] Plan approved for session: ${typeof body?.sessionId === 'string' ? body.sessionId : 'sessions/default'}`, createdAt).run()
+      );
       return json(request, {
         status: "plan_approved",
         session: typeof body?.sessionId === "string" ? body.sessionId : "sessions/default",
@@ -100,6 +106,13 @@ export default {
       if (!body || typeof body.prompt !== "string" || body.prompt.length === 0) {
         return json(request, { error: "prompt is required" }, 400);
       }
+
+      const createdAt = Math.floor(Date.now() / 1000);
+      ctx.waitUntil(
+        env.ONYX_DB.prepare(
+          "INSERT INTO telemetry_logs (level, message, created_at) VALUES (?, ?, ?)"
+        ).bind("info", `[JULES_EDGE] Session created: ${body.prompt.slice(0, 100)}`, createdAt).run()
+      );
 
       return json(request, {
         status: "session_queued",
