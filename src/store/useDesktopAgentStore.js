@@ -611,7 +611,10 @@ export const useDesktopAgentStore = create(
   setLogFilter: (filter) => set({ logFilter: filter }),
   toggleAutoScroll: () => set((state) => ({ isAutoScrollEnabled: !state.isAutoScrollEnabled })),
   incrementLocalBufferQueue: () => set((state) => ({ localQueueCount: state.localQueueCount + 1 })),
-  clearLocalBufferQueue: () => set({ localQueueCount: 0 }),
+  clearLocalBufferQueue: () => {
+    set({ localQueueCount: 0 });
+    get().addActionLog({ type: 'system', text: '[VECTOR_ENGINE] Knowledge buffer queue flushed to Cloudflare Edge D1 database.' });
+  },
   setActiveTaskId: (id) => set({ activeTaskId: id }),
   logoutUser: (signOut = true) => {
     if (signOut && aximCoreClient) {
