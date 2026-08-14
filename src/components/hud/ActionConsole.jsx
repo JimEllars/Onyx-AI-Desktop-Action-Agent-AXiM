@@ -2,11 +2,51 @@ import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
+const LogItem = React.memo(({ log }) => {
+  const isError = log.text?.includes('[ERROR]');
+  const isFault = log.text?.includes('[FAULT]');
+  const isIdentity = log.text?.includes('[IDENTITY]');
+  const isConnect = log.text?.includes('[CONNECT]') || log.text?.includes('[CLOUDFLARE_EDGE]');
+  const isRecovery = log.text?.includes('[RECOVERY]') || log.text?.includes('[RESET]');
+  const isAsguardShield = log.text?.includes('[ASGUARD_SHIELD]');
+  const isEnrichment = log.text?.includes('[ENRICHMENT]');
+  const isHITL = log.text?.includes('[HITL]');
+  const isSuccess = log.text?.includes('[SUCCESS]');
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -10 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="flex gap-3 border-l-2 border-slate-800 pl-3 py-1 hover:border-emerald-500/50 transition-colors"
+    >
+      <span className="text-slate-600 shrink-0">
+        {new Date(log.timestamp).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+      </span>
+      <span title={log.text} className={`col-span-8 flex-1 line-clamp-2 ${
+        isHITL ? 'text-fuchsia-400 font-semibold tracking-wider' :
+        isAsguardShield ? 'text-red-400 font-bold tracking-wide animate-pulse' :
+        isEnrichment ? 'text-emerald-400 tracking-wide font-medium' :
+        isSuccess ? 'text-cyan-400 font-bold' :
+        isIdentity ? 'text-amber-400 tracking-wide font-bold' :
+        isConnect ? 'text-purple-400' :
+        isRecovery ? 'text-cyan-400' :
+        isError ? 'text-red-400' :
+        isFault ? 'text-amber-500' :
+        log.type === 'action' ? 'text-cyan-400' :
+        log.type === 'task' ? 'text-emerald-400' : 'text-slate-400'
+      }`}>
+        {log.text}
+      </span>
+    </motion.div>
+  );
+});
+
 export default function ActionConsole({ className = "" }) {
   const { actionLogs, pendingApprovals, approveAction, rejectAction, addActionLog, logFilter, setLogFilter, isAutoScrollEnabled, toggleAutoScroll, clearActionLogs } = useDesktopAgentStore();
   const [expandedMcpIds, setExpandedMcpIds] = React.useState([]);
   const [editedPayloads, setEditedPayloads] = React.useState({});
   const [isCopied, setIsCopied] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const getDefaultPayload = (approval) => {
     return JSON.stringify({
@@ -119,7 +159,7 @@ export default function ActionConsole({ className = "" }) {
         </div>
       </div>
       {/* Setting flex-col-reverse so that standard prepend order makes items flow bottom up if needed, or just let it scroll normally */}
-      <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col min-h-[100px] pr-1">
+      <div className="flex-1 overflow-y-auto font-mono text-[9px] scrollbar-hide flex flex-col min-h-[100px] pr-1" onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
         <div className="mt-auto flex flex-col space-y-3">
         <AnimatePresence initial={false}>
           {filteredLogs.length === 0 && (
@@ -134,43 +174,7 @@ export default function ActionConsole({ className = "" }) {
           )}
           {/* actionLogs has the newest log at index 0. We want the oldest at the top and newest at the bottom if we scroll to the bottom. Let's reverse it visually or reverse the array. Reversing the array is fine. */}
           {[...filteredLogs].sort((a, b) => a.timestamp - b.timestamp).map((log) => {
-            // Use simple regex or includes to find error syntax
-            const isError = log.text?.includes('[ERROR]');
-            const isFault = log.text?.includes('[FAULT]');
-            const isIdentity = log.text?.includes('[IDENTITY]');
-            const isConnect = log.text?.includes('[CONNECT]') || log.text?.includes('[CLOUDFLARE_EDGE]');
-            const isRecovery = log.text?.includes('[RECOVERY]') || log.text?.includes('[RESET]');
-            const isAsguardShield = log.text?.includes('[ASGUARD_SHIELD]');
-            const isEnrichment = log.text?.includes('[ENRICHMENT]');
-            const isHITL = log.text?.includes('[HITL]');
-            const isSuccess = log.text?.includes('[SUCCESS]');
-            return (
-              <motion.div
-                key={log.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex gap-3 border-l-2 border-slate-800 pl-3 py-1 hover:border-emerald-500/50 transition-colors"
-              >
-                <span className="text-slate-600 shrink-0">
-                  {log.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                </span>
-                <span title={log.text} className={`col-span-8 flex-1 line-clamp-2 ${
-                  isHITL ? 'text-fuchsia-400 font-semibold tracking-wider' :
-                  isAsguardShield ? 'text-red-400 font-bold tracking-wide animate-pulse' :
-                  isEnrichment ? 'text-emerald-400 tracking-wide font-medium' :
-                  isSuccess ? 'text-cyan-400 font-bold' :
-                  isIdentity ? 'text-amber-400 tracking-wide font-bold' :
-                  isConnect ? 'text-purple-400' :
-                  isRecovery ? 'text-cyan-400' :
-                  isError ? 'text-red-400' :
-                  isFault ? 'text-amber-500' :
-                  log.type === 'action' ? 'text-cyan-400' :
-                  log.type === 'task' ? 'text-emerald-400' : 'text-slate-400'
-                }`}>
-                  {log.text}
-                </span>
-              </motion.div>
-            );
+            return <LogItem key={log.id} log={log} />;
           })}
         </AnimatePresence>
                 <AnimatePresence initial={false}>
