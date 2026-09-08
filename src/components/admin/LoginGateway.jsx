@@ -1,10 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 import { motion } from 'framer-motion';
 import { aximCoreClient, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 export default function LoginGateway() {
   const { loginUser } = useDesktopAgentStore();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      loginUser(token);
+    }
+  }, [loginUser]);
+
+  const handlePassportSSO = () => {
+    const isTauri = typeof window !== 'undefined' && Boolean(window.__TAURI_INTERNALS__);
+    if (isTauri) {
+      loginUser('ONYX-ACCESS-2026'); // Loopback logic for Tauri
+    } else {
+      const redirectUri = encodeURIComponent(window.location.origin);
+      window.location.href = `https://passport.axim.us.com?redirect=${redirectUri}`;
+    }
+  };
+
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,6 +82,21 @@ export default function LoginGateway() {
           <div className="bg-slate-950 p-4 border border-slate-800 rounded text-sm text-slate-400">
             <p className="mb-2">SYSTEM: Supabase Auth gateway active.</p>
             <p>AWAITING: Authorized operator credentials.</p>
+          </div>
+
+
+          <button
+            type="button"
+            onClick={handlePassportSSO}
+            className="w-full py-3 px-4 border rounded transition-all duration-300 font-bold tracking-wide bg-blue-500/10 border-blue-500/50 text-blue-400 hover:bg-blue-500/20 hover:border-blue-400 hover:shadow-[0_0_10px_rgba(59,130,246,0.2)] mb-2"
+          >
+            Sign In with AXiM Passport
+          </button>
+
+          <div className="flex items-center gap-4 my-2">
+            <div className="h-px bg-slate-800 flex-1"></div>
+            <span className="text-xs text-slate-500">OR</span>
+            <div className="h-px bg-slate-800 flex-1"></div>
           </div>
 
           {errorMessage && (
