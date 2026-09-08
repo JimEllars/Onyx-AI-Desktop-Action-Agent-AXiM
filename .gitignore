@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 .env
 .wrangler
+# Runtime & Build Artifacts
+*.pid
+*.orig
+*.timestamp-*.mjs
+test_app.js
+finish.js
+start_app.sh

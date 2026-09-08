@@ -67,6 +67,44 @@ export function useAgentConnection() {
     };
   }, [walletConnected, operatorAddress, isEdgeApiConfigured]);
 
+
+  useEffect(() => {
+    let eventSource = null;
+    try {
+      eventSource = new EventSource('https://api.axim.us.com/functions/v1/onyx-ui-stream');
+
+      eventSource.addEventListener('telemetry_pulse', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          useDesktopAgentStore.getState().updateTelemetry?.(data);
+        } catch (err) { /* ignore parse error */ }
+      });
+
+      eventSource.addEventListener('hitl_action_required', (e) => {
+        try {
+          const task = JSON.parse(e.data);
+          useDesktopAgentStore.getState().addPendingApproval?.({
+            id: task.id || `ext_${Date.now()}`,
+            action: task.action || 'EXTERNAL_ECOSYSTEM_ACTION',
+            agent: task.agent || 'AXiM_Satellite_Agent',
+            details: task.details || 'Action authorization requested from AXiM Core.'
+          });
+        } catch (err) { /* ignore parse error */ }
+      });
+
+      eventSource.onerror = () => {
+        // Graceful silent fallback to maintain continuous UI functionality
+        eventSource?.close();
+      };
+    } catch (e) {
+      // Prevent UI crash if SSE endpoint is unavailable
+    }
+
+    return () => {
+      eventSource?.close();
+    };
+  }, []);
+
   useEffect(() => {
     if (!walletConnected || !isSupabaseConfigured) return;
 
