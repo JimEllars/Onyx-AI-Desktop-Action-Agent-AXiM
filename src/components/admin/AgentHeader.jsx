@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
 export default function AgentHeader() {
-  const { clearThreats,  localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, cloudflareEdgeNode, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
+  const { clearThreats, heartbeatStatus,  localNodeId, localQueueCount, operatorAddress, operatorRole, currentView, setView, systemStatus, cfCacheStatus, cfRayId, cloudflareEdgeNode, threatCount, isLiveChannelConnected, communicationMode, logoutUser } = useDesktopAgentStore();
 
   return (
     <header className="flex justify-between items-center border-b border-slate-800 pb-4 shrink-0" data-tauri-drag-region="true">
@@ -99,6 +99,16 @@ export default function AgentHeader() {
               [LOCAL_AUTOPILOT]
             </div>
           )}
+
+          <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex items-center justify-between min-w-[70px]">
+            <span className="text-[8px] text-slate-500 font-bold tracking-tighter mr-2">LINK</span>
+            <span className={`w-2 h-2 rounded-full ${
+               heartbeatStatus === 'nominal' ? 'bg-emerald-500 shadow-[0_0_5px_#10b981]' :
+               heartbeatStatus === 'degraded' ? 'bg-amber-500 animate-pulse shadow-[0_0_5px_#f59e0b]' :
+               'bg-rose-500 shadow-[0_0_5px_#f43f5e]'
+            }`}></span>
+          </div>
+
           <div className="bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md shadow-inner flex flex-col items-center min-w-[60px]">
             <span className="text-[8px] text-slate-500 font-bold tracking-tighter">CF_CACHE</span>
             <span className={`text-[11px] font-bold ${cfCacheStatus === 'HIT' ? 'text-emerald-400' : cfCacheStatus === 'MISS' ? 'text-red-400' : 'text-amber-400'}`}>{cfCacheStatus}</span>

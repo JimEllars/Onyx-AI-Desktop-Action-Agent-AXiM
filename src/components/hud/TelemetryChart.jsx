@@ -19,6 +19,7 @@ export default function TelemetryChart() {
   const latencyHistory = useDesktopAgentStore(state => state.latencyHistory);
   const telemetrySource = useDesktopAgentStore(state => state.telemetrySource);
   const networkLatencyMs = useDesktopAgentStore(state => state.networkLatencyMs);
+  const heartbeatStatus = useDesktopAgentStore(state => state.heartbeatStatus);
 
   const chartRef = useRef(null);
 
@@ -41,6 +42,8 @@ export default function TelemetryChart() {
 
   const option = {
     backgroundColor: 'transparent',
+    animationDurationUpdate: 500,
+    animationEasingUpdate: 'linear',
     tooltip: {
       show: true,
       trigger: 'axis',
@@ -159,7 +162,11 @@ export default function TelemetryChart() {
           </div>
           <div className="flex items-center gap-1 mt-0.5">
              <span className="text-slate-400">ORIGIN:</span>
-             <span className={telemetrySource === 'live_daemon' ? 'text-cyan-400' : 'text-purple-400 uppercase'}>{telemetrySource || 'standby'}</span>
+             <span className={
+         heartbeatStatus === 'nominal' ? 'text-emerald-400 uppercase' :
+         heartbeatStatus === 'degraded' ? 'text-amber-400 uppercase animate-pulse' :
+         'text-red-400 uppercase'
+       }>{heartbeatStatus || 'standby'}</span>
           </div>
         </div>
         <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />

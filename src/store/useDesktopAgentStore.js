@@ -38,7 +38,7 @@ export const useDesktopAgentStore = create(
   cfRayId: '8b42f6ad120ea31c',
 
   telemetryBuffer: [],
-  telemetryRetryCount: 0,
+  telemetryRetryCount: 0, lastTelemetryTimestamp: 0, heartbeatStatus: "nominal",
   heartbeatActive: true,
   fleetNodes: [
     { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
@@ -315,6 +315,10 @@ export const useDesktopAgentStore = create(
   }),
 
   setLiveTelemetry: (data) => set((state) => {
+    if (data && data.timestamp) {
+       // Just update if we want to store timestamp, otherwise logic below replaces it
+    }
+
     // Apply Exponential Moving Average (EMA) to prevent UI flicker
     const alpha = 0.2;
 
@@ -345,7 +349,7 @@ export const useDesktopAgentStore = create(
     }
 
     return {
-      telemetrySource: newSource,
+      telemetrySource: newSource, heartbeatStatus: "nominal",
       cloudflareEdgeNode: newEdge,
       cpuLoad: newCpu,
       memoryUsage: newMemory,
@@ -486,7 +490,7 @@ export const useDesktopAgentStore = create(
     memoryUsage: 0,
     networkLatencyMs: 0,
     systemStatus: 'READY',
-    pendingApprovals: [],
+    pendingApprovals: [], pendingDispatches: [],
     communicationMode: 'TEXT',
     fleetNodes: [
       { id: '01', uid: 'AXIM-NODE-LAX-01', os: 'Native Desktop Wrapper', build: 'v3.5.2', status: '[LOCAL_PRIMARY]', color: 'text-emerald-400' },
@@ -662,7 +666,7 @@ export const useDesktopAgentStore = create(
     {
       name: 'onyx-desktop-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ messages: state.messages, logFilter: state.logFilter, isAutoScrollEnabled: state.isAutoScrollEnabled })
+      partialize: (state) => ({ messages: state.messages, logFilter: state.logFilter, isAutoScrollEnabled: state.isAutoScrollEnabled, pendingDispatches: state.pendingDispatches })
     }
   )
 );
