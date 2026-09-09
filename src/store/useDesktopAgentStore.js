@@ -8,6 +8,7 @@ export const useDesktopAgentStore = create(
     (set, get) => ({
   walletConnected: false,
   isLiveChannelConnected: false,
+  telemetrySource: 'standby',
   currentView: 'HUD',
   cpuHistory: Array(30).fill(0),
   memoryHistory: Array(30).fill(0),
@@ -314,13 +315,23 @@ export const useDesktopAgentStore = create(
   }),
 
   setLiveTelemetry: (data) => set((state) => {
-    const newCpu = data?.cpuLoad ?? state.cpuLoad;
-    const newMemory = data?.memoryUsage ?? state.memoryUsage;
-    const newLatency = data?.networkLatencyMs ?? state.networkLatencyMs;
+    // Apply Exponential Moving Average (EMA) to prevent UI flicker
+    const alpha = 0.2;
+
+    const rawCpu = data?.cpuLoad ?? state.cpuLoad;
+    const rawMem = data?.memoryUsage ?? state.memoryUsage;
+    const rawLat = data?.networkLatencyMs ?? state.networkLatencyMs;
+
+    const newCpu = state.telemetrySource === 'standby' ? rawCpu : (state.cpuLoad + alpha * (rawCpu - state.cpuLoad));
+    const newMemory = state.telemetrySource === 'standby' ? rawMem : (state.memoryUsage + alpha * (rawMem - state.memoryUsage));
+    const newLatency = state.telemetrySource === 'standby' ? rawLat : (state.networkLatencyMs + alpha * (rawLat - state.networkLatencyMs));
+
     const newEdge = data?.cloudflareEdgeNode ?? state.cloudflareEdgeNode;
 
     const newStatus = data?.cfCacheStatus || state.cfCacheStatus;
     const newRayId = data?.cfRayId || state.cfRayId;
+
+    const newSource = data?.source || state.telemetrySource;
 
     let currentActionLogs = state.actionLogs;
     if ((newStatus === 'MISS' || newStatus === 'DYNAMIC') && newStatus !== state.cfCacheStatus) {
@@ -334,6 +345,7 @@ export const useDesktopAgentStore = create(
     }
 
     return {
+      telemetrySource: newSource,
       cloudflareEdgeNode: newEdge,
       cpuLoad: newCpu,
       memoryUsage: newMemory,

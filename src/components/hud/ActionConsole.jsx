@@ -103,7 +103,7 @@ export default function ActionConsole({ className = "" }) {
           >
             [CLEAR]
           </button>
-          {['ALL', 'NET', 'SEC', 'SYS'].map(f => (
+          {['ALL', 'INFO', 'WARN', 'ERROR', 'SYSTEM'].map(f => (
             <button
               key={f}
               onClick={() => setLogFilter(f)}

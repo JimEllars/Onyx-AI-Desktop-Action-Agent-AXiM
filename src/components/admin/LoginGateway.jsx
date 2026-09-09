@@ -43,9 +43,41 @@ export default function LoginGateway() {
     setIsLoading(true);
 
     const credentials = { email: email.trim(), password };
-    const { data, error } = isSignUp
-      ? await aximCoreClient.auth.signUp(credentials)
-      : await aximCoreClient.auth.signInWithPassword(credentials);
+
+    // Offline resilience: Wrap Supabase Auth call with timeout wrapper (max 4000ms)
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Network timeout. Edge API unreachable.')), 4000)
+    );
+
+    let result;
+    try {
+       const authPromise = isSignUp
+         ? aximCoreClient.auth.signUp(credentials)
+         : aximCoreClient.auth.signInWithPassword(credentials);
+
+       result = await Promise.race([authPromise, timeoutPromise]);
+    } catch (err) {
+       // Graceful degradation: Check localStorage for cached session
+       const cachedSessionStr = localStorage.getItem('onyx_auth_session');
+       if (cachedSessionStr) {
+          try {
+             const cachedSession = JSON.parse(cachedSessionStr);
+             if (cachedSession.email === credentials.email) {
+                console.warn('[OFFLINE_RECOVERY] Network timeout. Falling back to cached session mode.');
+                loginUser(cachedSession.email);
+                setIsLoading(false);
+                return;
+             }
+          } catch (e) {
+             // ignore parse err
+          }
+       }
+       setErrorMessage(err.message || 'Authentication timeout');
+       setIsLoading(false);
+       return;
+    }
+
+    const { data, error } = result;
 
     if (error) {
       setErrorMessage(error.message);
@@ -58,6 +90,9 @@ export default function LoginGateway() {
       setIsLoading(false);
       return;
     }
+
+    // Cache session on success
+    localStorage.setItem('onyx_auth_session', JSON.stringify({ email: data.user.email || data.user.id, timestamp: Date.now() }));
 
     loginUser(data.user.email || data.user.id);
     setIsLoading(false);

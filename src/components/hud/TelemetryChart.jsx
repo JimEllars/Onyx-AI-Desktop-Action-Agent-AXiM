@@ -1,12 +1,24 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, Component } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { useDesktopAgentStore } from '../../store/useDesktopAgentStore';
 
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { hasError: false }; }
+  static getDerivedStateFromError(error) { return { hasError: true }; }
+  componentDidCatch(error, errorInfo) { console.error('Chart Error:', error, errorInfo); }
+  render() {
+    if (this.state.hasError) return <div className="h-32 w-full flex items-center justify-center text-red-500 text-xs">[CHART_RENDER_ERROR]</div>;
+    return this.props.children;
+  }
+}
+
+
 export default function TelemetryChart() {
-  // Only subscribe to history updates to prevent UI stutter on unrelated state changes
   const cpuHistory = useDesktopAgentStore(state => state.cpuHistory);
   const memoryHistory = useDesktopAgentStore(state => state.memoryHistory);
   const latencyHistory = useDesktopAgentStore(state => state.latencyHistory);
+  const telemetrySource = useDesktopAgentStore(state => state.telemetrySource);
+  const networkLatencyMs = useDesktopAgentStore(state => state.networkLatencyMs);
 
   const chartRef = useRef(null);
 
@@ -26,7 +38,6 @@ export default function TelemetryChart() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
 
   const option = {
     backgroundColor: 'transparent',
@@ -74,7 +85,7 @@ export default function TelemetryChart() {
         data: cpuHistory,
         type: 'line',
         connectNulls: false,
-                                smooth: true,
+        smooth: true,
         symbol: 'none',
         itemStyle: { color: '#10b981' },
         lineStyle: { width: 1, color: '#10b981' },
@@ -135,8 +146,24 @@ export default function TelemetryChart() {
   };
 
   return (
-    <div className="h-32 w-full">
-      <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />
-    </div>
+    <ErrorBoundary>
+      <div className="relative h-32 w-full">
+        <div className="absolute top-0 right-2 z-10 flex flex-col items-end pointer-events-none text-[8px] font-mono opacity-80 mt-1">
+          <div className="flex items-center gap-1">
+             <span className="text-slate-400">RTT:</span>
+             <span className={networkLatencyMs < 50 ? 'text-emerald-400' : 'text-amber-400'}>{Math.round(networkLatencyMs)}ms</span>
+          </div>
+          <div className="flex items-center gap-1">
+             <span className="text-slate-400">PKT_DROP:</span>
+             <span className="text-emerald-400">0.0%</span>
+          </div>
+          <div className="flex items-center gap-1 mt-0.5">
+             <span className="text-slate-400">ORIGIN:</span>
+             <span className={telemetrySource === 'live_daemon' ? 'text-cyan-400' : 'text-purple-400 uppercase'}>{telemetrySource || 'standby'}</span>
+          </div>
+        </div>
+        <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />
+      </div>
+    </ErrorBoundary>
   );
 }

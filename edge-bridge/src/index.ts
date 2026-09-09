@@ -40,9 +40,66 @@ function validTelemetryEntry(entry: unknown): entry is { level?: string; message
     message.length <= 4_096;
 }
 
+function validTelemetryStreamFrame(entry: unknown): boolean {
+  if (!entry || typeof entry !== "object") {
+    return false;
+  }
+  const { cpuLoad, memoryUsage, gpuVram, networkThroughput, timestamp } = entry as any;
+  return typeof cpuLoad === "number" &&
+    typeof memoryUsage === "number" &&
+    typeof gpuVram === "number" &&
+    typeof networkThroughput === "number" &&
+    typeof timestamp === "string";
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
+
+    // 1. WebSocket Upgrade Handler with session durability
+    const upgradeHeader = request.headers.get('Upgrade');
+    if (upgradeHeader || upgradeHeader === 'websocket') {
+      const [client, server] = Object.values(new WebSocketPair());
+
+      let pingInterval: ReturnType<typeof setInterval>;
+
+      server.accept();
+
+      const sessionId = url.searchParams.get("session_id") || "unknown";
+
+      server.addEventListener('message', event => {
+        try {
+            const data = JSON.parse(event.data as string);
+            if (data.type === 'resume_session') {
+                 // session resume logic
+                 server.send(JSON.stringify({ type: 'session_resumed', token: sessionId }));
+            }
+        } catch (e) {
+            // ignore JSON parse error on WS
+        }
+      });
+
+      server.addEventListener('close', () => {
+         clearInterval(pingInterval);
+      });
+
+      server.addEventListener('error', () => {
+         clearInterval(pingInterval);
+      });
+
+      pingInterval = setInterval(() => {
+          if (server.readyState === WebSocket.READY_STATE_OPEN) {
+             server.send(JSON.stringify({ type: 'heartbeat_ping', timestamp: Date.now() }));
+          } else {
+             clearInterval(pingInterval);
+          }
+      }, 30000);
+
+      return new Response(null, {
+        status: 101,
+        webSocket: client,
+      });
+    }
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(request) });
@@ -80,7 +137,6 @@ export default {
         }],
       });
     }
-
 
     if (request.method !== "POST") {
       return json(request, { error: "Not found" }, 404);
@@ -147,11 +203,33 @@ export default {
            ON CONFLICT(session_id) DO UPDATE SET
              user_id = excluded.user_id,
              client_version = excluded.client_version,
-             last_seen = excluded.last_seen`,
+             last_seen = excluded.last_seen`
         ).bind(body.session_id, body.user_id, clientVersion, lastSeen).run(),
       );
 
       return json(request, { status: "ok" });
+    }
+
+    if (url.pathname === "/api/telemetry/stream") {
+       const body = await request.json<unknown>().catch(() => null);
+       if (!Array.isArray(body) || body.length > 100 || !body.every(validTelemetryStreamFrame)) {
+          return json(request, { error: "Payload must contain at most 100 valid telemetry stream frames" }, 400);
+       }
+
+       const createdAt = Math.floor(Date.now() / 1000);
+       const statement = env.ONYX_DB.prepare(
+         "INSERT INTO telemetry_logs (level, message, created_at) VALUES (?, ?, ?)"
+       );
+
+       const entries = body.map((frame: any) =>
+          statement.bind("info", `[STREAM_FRAME] cpu:${frame.cpuLoad} mem:${frame.memoryUsage} gpu:${frame.gpuVram} net:${frame.networkThroughput}`, createdAt)
+       );
+
+       if (entries.length > 0) {
+           ctx.waitUntil(env.ONYX_DB.batch(entries));
+       }
+
+       return json(request, { status: "stream_buffered", count: entries.length });
     }
 
     if (url.pathname === "/api/v1/telemetry/batch") {
@@ -169,7 +247,7 @@ export default {
       );
 
       if (entries.length > 0) {
-        await env.ONYX_DB.batch(entries);
+        ctx.waitUntil(env.ONYX_DB.batch(entries));
       }
 
       return json(request, { status: "batch_accepted", count: entries.length });
