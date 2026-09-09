@@ -10,6 +10,65 @@ export function useAgentConnection() {
   const hasRecoveredRef = useRef(false);
 
 
+
+  // Local Rust Daemon WebSocket with Exponential Backoff and Fallback
+  useEffect(() => {
+    let ws = null;
+    let reconnectTimeout = null;
+    let delay = 500;
+    const maxDelay = 10000;
+
+    function connect() {
+       ws = new WebSocket('ws://127.0.0.1:9001');
+
+       ws.onopen = () => {
+          delay = 500;
+          setLiveChannelConnected(true);
+          useDesktopAgentStore.getState().addActionLog({
+             type: 'network',
+             text: '[LOCAL_DAEMON] Local Rust telemetry WebSocket connected.'
+          });
+       };
+
+       ws.onmessage = (event) => {
+          try {
+             const data = JSON.parse(event.data);
+             setLiveTelemetry({ ...data, source: 'live_daemon' });
+          } catch (e) {
+             // ignore parse error
+          }
+       };
+
+       ws.onclose = () => {
+          setLiveChannelConnected(false);
+          useDesktopAgentStore.getState().addActionLog({
+             type: 'warning',
+             text: `[LOCAL_DAEMON] Disconnected. Reconnecting in ${delay}ms...`
+          });
+
+          reconnectTimeout = setTimeout(() => {
+              delay = Math.min(maxDelay, delay * 2) + Math.random() * 200;
+              connect();
+          }, delay);
+       };
+
+       ws.onerror = () => {
+          ws.close();
+       };
+    }
+
+    connect();
+
+    return () => {
+       clearTimeout(reconnectTimeout);
+       if (ws) {
+          ws.onclose = null;
+          ws.close();
+       }
+    };
+  }, []);
+
+
   // Jules Activity Polling Effect
   useEffect(() => {
     const julesState = useDesktopAgentStore.getState().julesSessionState;
