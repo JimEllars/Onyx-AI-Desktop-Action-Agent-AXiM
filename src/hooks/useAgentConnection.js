@@ -12,61 +12,83 @@ export function useAgentConnection() {
 
 
   // Local Rust Daemon WebSocket with Exponential Backoff and Fallback
+
   useEffect(() => {
-    let ws = null;
-    let reconnectTimeout = null;
-    let delay = 500;
-    const maxDelay = 10000;
+    let pollTimeout = null;
+    let delay = 1000;
+    const maxDelay = 15000;
+    let isActive = true;
 
-    function connect() {
-       ws = new WebSocket('ws://127.0.0.1:9001');
+    async function pollTelemetry() {
+      if (!isActive) return;
 
-       ws.onopen = () => {
-          delay = 500;
-          setLiveChannelConnected(true);
-          useDesktopAgentStore.getState().addActionLog({
-             type: 'network',
-             text: '[LOCAL_DAEMON] Local Rust telemetry WebSocket connected.'
-          });
-       };
+      const store = useDesktopAgentStore.getState();
+      const since = store.lastTelemetryTimestamp || 0;
 
-       ws.onmessage = (event) => {
-          try {
-             const data = JSON.parse(event.data);
-             setLiveTelemetry({ ...data, source: 'live_daemon' });
-          } catch (e) {
-             // ignore parse error
-          }
-       };
+      try {
+        const { getTelemetry } = await import('../lib/edgeApi.js');
+        const res = await getTelemetry(since, 50);
 
-       ws.onclose = () => {
-          setLiveChannelConnected(false);
-          useDesktopAgentStore.getState().addActionLog({
-             type: 'warning',
-             text: `[LOCAL_DAEMON] Disconnected. Reconnecting in ${delay}ms...`
-          });
+        if (res && res.data && res.data.length > 0) {
+           delay = 1000; // reset delay on success
 
-          reconnectTimeout = setTimeout(() => {
-              delay = Math.min(maxDelay, delay * 2) + Math.random() * 200;
-              connect();
-          }, delay);
-       };
+           // Process entries
+           const reversedData = [...res.data].reverse();
 
-       ws.onerror = () => {
-          ws.close();
-       };
+           let latestTimestamp = since;
+
+           reversedData.forEach(row => {
+               if (row.created_at > latestTimestamp) {
+                   latestTimestamp = row.created_at;
+               }
+               try {
+                  const msg = row.message;
+                  // Try to parse if it's the stream format: "[STREAM_FRAME] cpu:X mem:Y gpu:Z net:W"
+                  const match = msg.match(/cpu:([0-9.]+) mem:([0-9.]+) gpu:([0-9.]+) net:([0-9.]+)/);
+                  if (match) {
+                      store.setLiveTelemetry({
+                          cpuLoad: parseFloat(match[1]),
+                          memoryUsage: parseFloat(match[2]),
+                          gpuVram: parseFloat(match[3]),
+                          networkThroughput: parseFloat(match[4]),
+                          source: 'cloudflare_edge'
+                      });
+                  }
+               } catch(e) {}
+           });
+
+           useDesktopAgentStore.setState({ lastTelemetryTimestamp: latestTimestamp, heartbeatStatus: 'nominal' });
+           store.setLiveChannelConnected(true);
+        } else {
+           // No fresh rows, but request succeeded
+           delay = 1000;
+           useDesktopAgentStore.setState({ heartbeatStatus: 'nominal' });
+           store.setLiveChannelConnected(true);
+        }
+      } catch (err) {
+         useDesktopAgentStore.setState({ heartbeatStatus: 'degraded' });
+         store.setLiveChannelConnected(false);
+         // Fallback is implicitly handled by setLiveTelemetry not being called, so state is retained
+
+         delay = Math.min(maxDelay, delay * 2);
+         store.addActionLog({ type: 'warning', text: `[EDGE_TELEMETRY] Polling degraded. Reconnecting in ${delay}ms...` });
+      }
+
+      pollTimeout = setTimeout(pollTelemetry, delay);
     }
 
-    connect();
+    if (isEdgeApiConfigured) {
+        pollTelemetry();
+    } else {
+        useDesktopAgentStore.setState({ heartbeatStatus: 'offline' });
+    }
 
     return () => {
-       clearTimeout(reconnectTimeout);
-       if (ws) {
-          ws.onclose = null;
-          ws.close();
-       }
+      isActive = false;
+      clearTimeout(pollTimeout);
     };
   }, []);
+
 
 
   // Jules Activity Polling Effect
@@ -191,7 +213,10 @@ export function useAgentConnection() {
             if (currentQueueCount > 0) {
               try {
                 // Background sync to flush queued events to public.events
-                await aximCoreClient.from('events').insert({
+                if (useDesktopAgentStore.getState().pendingDispatches && useDesktopAgentStore.getState().pendingDispatches.length > 0) {
+      await useDesktopAgentStore.getState().retryPendingDispatches();
+   }
+   await aximCoreClient.from('events').insert({
                   event_type: 'FLUSH_BUFFER',
                   count: currentQueueCount,
                   timestamp: new Date().toISOString()

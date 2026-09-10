@@ -138,6 +138,40 @@ export default {
       });
     }
 
+
+    if (request.method === "GET" && url.pathname === "/api/telemetry") {
+      const since = url.searchParams.get("since");
+      const limitParam = url.searchParams.get("limit");
+      let limit = 50;
+      if (limitParam) {
+        limit = parseInt(limitParam, 10);
+        if (isNaN(limit) || limit < 1 || limit > 100) limit = 50;
+      }
+
+      let query = "SELECT * FROM telemetry_logs";
+      const params = [];
+      if (since) {
+         const timestamp = parseInt(since, 10);
+         if (!isNaN(timestamp)) {
+             query += " WHERE created_at > ?";
+             params.push(timestamp);
+         }
+      }
+      query += " ORDER BY created_at DESC LIMIT ?";
+      params.push(limit);
+
+      const { results } = await env.ONYX_DB.prepare(query).bind(...params).all();
+
+      return new Response(JSON.stringify({ data: results }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          ...corsHeaders(request)
+        },
+      });
+    }
+
     if (request.method !== "POST") {
       return json(request, { error: "Not found" }, 404);
     }
