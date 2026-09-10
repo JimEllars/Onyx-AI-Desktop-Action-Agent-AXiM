@@ -37,6 +37,67 @@ export const useDesktopAgentStore = create(
   cfCacheStatus: 'HIT',
   cfRayId: '8b42f6ad120ea31c',
 
+
+  telemetry: {
+    cpu: 0,
+    ram: 0,
+    latencyMs: 0,
+    status: 'disconnected',
+    history: []
+  },
+  connectTelemetryStream: () => {
+    set((state) => ({ telemetry: { ...state.telemetry, status: 'reconnecting' } }));
+    const eventSource = new EventSource('https://onyx-edge.axim.us.com/api/telemetry/stream');
+
+    eventSource.onopen = () => {
+      set((state) => ({ telemetry: { ...state.telemetry, status: 'connected' }, heartbeatStatus: 'nominal', isLiveChannelConnected: true }));
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        set((state) => {
+          const timestamp = Date.now();
+          const cpu = data.cpuLoad || data.cpu || 0;
+          const ram = data.memoryUsage || data.ram || 0;
+          const latencyMs = data.networkLatencyMs || data.latencyMs || state.telemetry.latencyMs;
+
+          const newHistoryEntry = { timestamp, cpu, ram };
+          const newHistory = [...state.telemetry.history, newHistoryEntry].slice(-30);
+
+          return {
+            telemetry: {
+              ...state.telemetry,
+              cpu,
+              ram,
+              latencyMs,
+              history: newHistory
+            },
+            // Also update legacy history arrays for backwards compatibility with TelemetryChart.jsx which hasn't been modified yet
+            cpuHistory: [...state.cpuHistory, cpu].slice(-30),
+            memoryHistory: [...state.memoryHistory, ram].slice(-30),
+            latencyHistory: [...state.latencyHistory, latencyMs].slice(-30),
+            cpuLoad: cpu,
+            memoryUsage: ram,
+            networkLatencyMs: latencyMs
+          };
+        });
+      } catch (e) {}
+    };
+
+    eventSource.onerror = () => {
+      set((state) => ({ telemetry: { ...state.telemetry, status: 'disconnected' }, heartbeatStatus: 'degraded', isLiveChannelConnected: false }));
+      eventSource.close();
+      setTimeout(() => {
+        get().connectTelemetryStream();
+      }, 5000);
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  },
+
   telemetryBuffer: [],
   telemetryRetryCount: 0, lastTelemetryTimestamp: 0, heartbeatStatus: "nominal",
   heartbeatActive: true,

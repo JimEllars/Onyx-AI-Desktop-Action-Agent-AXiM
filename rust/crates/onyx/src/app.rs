@@ -2,7 +2,7 @@ use std::time::Duration;
 use tokio::time;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
-use telemetry::send_session_heartbeat;
+use telemetry::{send_session_heartbeat, spawn_telemetry_dispatch};
 
 pub struct App {
     pub heartbeat_status: Arc<AtomicBool>,
@@ -28,6 +28,9 @@ impl App {
     pub fn start_heartbeat_task(&self, session_id: String, user_id: String) {
         let status = self.heartbeat_status.clone();
         let edge_health = self.edge_health.clone();
+
+        spawn_telemetry_dispatch(self.edge_health.clone());
+
         tokio::spawn(async move {
             let mut interval = time::interval(Duration::from_secs(60));
             loop {

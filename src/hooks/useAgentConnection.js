@@ -19,66 +19,15 @@ export function useAgentConnection() {
     const maxDelay = 15000;
     let isActive = true;
 
-    async function pollTelemetry() {
-      if (!isActive) return;
 
-      const store = useDesktopAgentStore.getState();
-      const since = store.lastTelemetryTimestamp || 0;
-
-      try {
-        const { getTelemetry } = await import('../lib/edgeApi.js');
-        const res = await getTelemetry(since, 50);
-
-        if (res && res.data && res.data.length > 0) {
-           delay = 1000; // reset delay on success
-
-           // Process entries
-           const reversedData = [...res.data].reverse();
-
-           let latestTimestamp = since;
-
-           reversedData.forEach(row => {
-               if (row.created_at > latestTimestamp) {
-                   latestTimestamp = row.created_at;
-               }
-               try {
-                  const msg = row.message;
-                  // Try to parse if it's the stream format: "[STREAM_FRAME] cpu:X mem:Y gpu:Z net:W"
-                  const match = msg.match(/cpu:([0-9.]+) mem:([0-9.]+) gpu:([0-9.]+) net:([0-9.]+)/);
-                  if (match) {
-                      store.setLiveTelemetry({
-                          cpuLoad: parseFloat(match[1]),
-                          memoryUsage: parseFloat(match[2]),
-                          gpuVram: parseFloat(match[3]),
-                          networkThroughput: parseFloat(match[4]),
-                          source: 'cloudflare_edge'
-                      });
-                  }
-               } catch(e) {}
-           });
-
-           useDesktopAgentStore.setState({ lastTelemetryTimestamp: latestTimestamp, heartbeatStatus: 'nominal' });
-           store.setLiveChannelConnected(true);
-        } else {
-           // No fresh rows, but request succeeded
-           delay = 1000;
-           useDesktopAgentStore.setState({ heartbeatStatus: 'nominal' });
-           store.setLiveChannelConnected(true);
-        }
-      } catch (err) {
-         useDesktopAgentStore.setState({ heartbeatStatus: 'degraded' });
-         store.setLiveChannelConnected(false);
-         // Fallback is implicitly handled by setLiveTelemetry not being called, so state is retained
-
-         delay = Math.min(maxDelay, delay * 2);
-         store.addActionLog({ type: 'warning', text: `[EDGE_TELEMETRY] Polling degraded. Reconnecting in ${delay}ms...` });
-      }
-
-      pollTimeout = setTimeout(pollTelemetry, delay);
+    let cleanupFn = () => {};
+    if (isEdgeApiConfigured) {
+      cleanupFn = useDesktopAgentStore.getState().connectTelemetryStream();
     }
 
+
     if (isEdgeApiConfigured) {
-        pollTelemetry();
+
     } else {
         useDesktopAgentStore.setState({ heartbeatStatus: 'offline' });
     }
