@@ -11,7 +11,8 @@ function corsHeaders(request: Request): HeadersInit {
   const origin = request.headers.get("Origin");
   const headers: HeadersInit = {
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
     "Vary": "Origin",
   };
 
@@ -22,11 +23,34 @@ function corsHeaders(request: Request): HeadersInit {
   return headers;
 }
 
+
+function rfc7807Error(request: Request, error: string, code: string, status: number = 400): Response {
+  return new Response(JSON.stringify({
+    error,
+    code,
+    timestamp: new Date().toISOString()
+  }), {
+    status,
+    headers: { "Content-Type": "application/problem+json", ...corsHeaders(request) }
+  });
+}
+
 function json(request: Request, body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "Content-Type": "application/json", ...corsHeaders(request) },
   });
+}
+
+
+function validDataPoint(entry: unknown): boolean {
+  if (!entry || typeof entry !== "object") return false;
+  const { cpu, memory, latency, workers, timestamp } = entry as any;
+  return typeof cpu === "number" &&
+         typeof memory === "number" &&
+         typeof latency === "number" &&
+         typeof workers === "number" &&
+         typeof timestamp === "string";
 }
 
 function validTelemetryEntry(entry: unknown): entry is { level?: string; message?: string } {
@@ -157,6 +181,29 @@ export default {
     }
 
 
+
+    if (request.method === "GET" && url.pathname === "/api/telemetry/recent") {
+      let limit = 30;
+      const limitParam = url.searchParams.get("limit");
+      if (limitParam) {
+        limit = parseInt(limitParam, 10);
+        if (isNaN(limit) || limit < 1 || limit > 100) limit = 30;
+      }
+
+      const { results } = await env.ONYX_DB.prepare(
+        "SELECT * FROM telemetry_logs ORDER BY created_at DESC LIMIT ?"
+      ).bind(limit).all();
+
+      return new Response(JSON.stringify({ data: results }), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          ...corsHeaders(request)
+        },
+      });
+    }
+
     if (request.method === "GET" && url.pathname === "/api/telemetry") {
       const since = url.searchParams.get("since");
       const limitParam = url.searchParams.get("limit");
@@ -190,9 +237,34 @@ export default {
       });
     }
 
-    if (request.method !== "POST") {
-      return json(request, { error: "Not found" }, 404);
+
+    if (request.method === "POST" && url.pathname === "/api/telemetry") {
+      const authHeader = request.headers.get("Authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return rfc7807Error(request, "Unauthorized", "UNAUTHORIZED", 401);
+      }
+
+      const body = await request.json<unknown>().catch(() => null);
+      if (!Array.isArray(body) || body.length > 100 || !body.every(validDataPoint)) {
+        return rfc7807Error(request, "Payload must contain at most 100 valid telemetry data points", "INVALID_PAYLOAD", 400);
+      }
+
+      const createdAt = Math.floor(Date.now() / 1000);
+      const statement = env.ONYX_DB.prepare(
+        "INSERT INTO telemetry_logs (level, message, created_at) VALUES (?, ?, ?)",
+      );
+
+      const entries = body.map((entry) =>
+        statement.bind("info", JSON.stringify(entry), createdAt)
+      );
+
+      if (entries.length > 0) {
+        ctx.waitUntil(env.ONYX_DB.batch(entries));
+      }
+
+      return json(request, { status: "batch_accepted", count: entries.length });
     }
+
 
     if (url.pathname === "/api/v1/jules/approve-plan") {
       const body = await request.json<{ sessionId?: unknown }>().catch(() => null);
@@ -212,7 +284,7 @@ export default {
     if (url.pathname === "/api/v1/jules/sessions") {
       const body = await request.json<{ prompt?: unknown }>().catch(() => null);
       if (!body || typeof body.prompt !== "string" || body.prompt.length === 0) {
-        return json(request, { error: "prompt is required" }, 400);
+        return rfc7807Error(request, "prompt is required", "BAD_REQUEST", 400);
       }
 
       const createdAt = Math.floor(Date.now() / 1000);
@@ -236,11 +308,11 @@ export default {
       }>().catch(() => null);
 
       if (!body || typeof body.session_id !== "string" || typeof body.user_id !== "string") {
-        return json(request, { error: "session_id and user_id are required" }, 400);
+        return rfc7807Error(request, "session_id and user_id are required", "BAD_REQUEST", 400);
       }
 
       if (body.session_id.length > 256 || body.user_id.length > 256) {
-        return json(request, { error: "session_id or user_id is too long" }, 400);
+        return rfc7807Error(request, "session_id or user_id is too long", "BAD_REQUEST", 400);
       }
 
       const clientVersion = typeof body.client_version === "string"
@@ -266,11 +338,11 @@ export default {
     if (request.method === "POST" && url.pathname === "/api/telemetry/ingest") {
       const authHeader = request.headers.get("Authorization");
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return json(request, { error: "Unauthorized" }, 401);
+        return rfc7807Error(request, "Unauthorized", "UNAUTHORIZED", 401);
       }
       const body = await request.json<any>().catch(() => null);
       if (!body) {
-        return json(request, { error: "Invalid body" }, 400);
+        return rfc7807Error(request, "Invalid body", "BAD_REQUEST", 400);
       }
       latestAgentTelemetry = body;
       broadcastTelemetry();
@@ -306,7 +378,7 @@ export default {
     if (url.pathname === "/api/v1/telemetry/batch") {
       const body = await request.json<unknown>().catch(() => null);
       if (!Array.isArray(body) || body.length > 100 || !body.every(validTelemetryEntry)) {
-        return json(request, { error: "Payload must contain at most 100 valid telemetry entries" }, 400);
+        return rfc7807Error(request, "Payload must contain at most 100 valid telemetry entries", "BAD_REQUEST", 400);
       }
 
       const createdAt = Math.floor(Date.now() / 1000);
@@ -324,7 +396,7 @@ export default {
       return json(request, { status: "batch_accepted", count: entries.length });
     }
 
-    return json(request, { error: "Not found" }, 404);
+    return rfc7807Error(request, "Not found", "NOT_FOUND", 404);
   },
 
   async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
