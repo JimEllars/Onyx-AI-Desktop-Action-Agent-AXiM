@@ -52,6 +52,24 @@ function validTelemetryStreamFrame(entry: unknown): boolean {
     typeof timestamp === "string";
 }
 
+
+let latestAgentTelemetry: any = null;
+const activeClients = new Set<ReadableStreamDefaultController>();
+
+function broadcastTelemetry() {
+  if (!latestAgentTelemetry) return;
+  const payload = JSON.stringify(latestAgentTelemetry);
+  const toRemove = new Set<ReadableStreamDefaultController>();
+  activeClients.forEach(client => {
+    try {
+      client.enqueue(new TextEncoder().encode(`data: ${payload}\n\n`));
+    } catch (e) {
+      toRemove.add(client);
+    }
+  });
+  toRemove.forEach(client => activeClients.delete(client));
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -244,27 +262,46 @@ export default {
       return json(request, { status: "ok" });
     }
 
-    if (url.pathname === "/api/telemetry/stream") {
-       const body = await request.json<unknown>().catch(() => null);
-       if (!Array.isArray(body) || body.length > 100 || !body.every(validTelemetryStreamFrame)) {
-          return json(request, { error: "Payload must contain at most 100 valid telemetry stream frames" }, 400);
-       }
 
-       const createdAt = Math.floor(Date.now() / 1000);
-       const statement = env.ONYX_DB.prepare(
-         "INSERT INTO telemetry_logs (level, message, created_at) VALUES (?, ?, ?)"
-       );
-
-       const entries = body.map((frame: any) =>
-          statement.bind("info", `[STREAM_FRAME] cpu:${frame.cpuLoad} mem:${frame.memoryUsage} gpu:${frame.gpuVram} net:${frame.networkThroughput}`, createdAt)
-       );
-
-       if (entries.length > 0) {
-           ctx.waitUntil(env.ONYX_DB.batch(entries));
-       }
-
-       return json(request, { status: "stream_buffered", count: entries.length });
+    if (request.method === "POST" && url.pathname === "/api/telemetry/ingest") {
+      const authHeader = request.headers.get("Authorization");
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return json(request, { error: "Unauthorized" }, 401);
+      }
+      const body = await request.json<any>().catch(() => null);
+      if (!body) {
+        return json(request, { error: "Invalid body" }, 400);
+      }
+      latestAgentTelemetry = body;
+      broadcastTelemetry();
+      return json(request, { status: "ingested" });
     }
+
+
+    if (request.method === "GET" && url.pathname === "/api/telemetry/stream") {
+      let controller: ReadableStreamDefaultController;
+      const stream = new ReadableStream({
+        start(c) {
+          controller = c;
+          activeClients.add(controller);
+          if (latestAgentTelemetry) {
+            controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(latestAgentTelemetry)}\n\n`));
+          }
+        },
+        cancel() {
+          if (controller) activeClients.delete(controller);
+        }
+      });
+      return new Response(stream, {
+        headers: {
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+          ...corsHeaders(request)
+        }
+      });
+    }
+
 
     if (url.pathname === "/api/v1/telemetry/batch") {
       const body = await request.json<unknown>().catch(() => null);
