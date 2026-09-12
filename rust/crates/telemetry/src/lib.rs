@@ -102,29 +102,60 @@ pub async fn send_telemetry_ingest(payload: &TelemetryPayload) -> Result<(), Tel
 
 pub fn spawn_telemetry_dispatch(edge_health: Arc<AtomicBool>) {
     tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_millis(1000));
+        let mut sample_interval = tokio::time::interval(Duration::from_millis(1000));
+        let mut flush_interval = tokio::time::interval(Duration::from_secs(5));
         let mut cpu = 10.0;
         let mut ram = 120.0;
+        let mut buffer: Vec<serde_json::Value> = Vec::new();
 
         loop {
-            interval.tick().await;
+            tokio::select! {
+                _ = sample_interval.tick() => {
+                    // Mock vitals sampling
+                    cpu = f64::min(cpu + 1.0, 100.0);
+                    ram = f64::min(ram + 2.0, 1024.0);
 
-            // Mock vitals sampling
-            cpu = f64::min(cpu + 1.0, 100.0);
-            ram = f64::min(ram + 2.0, 1024.0);
-            let payload = TelemetryPayload {
-                cpu,
-                ram,
-                latency_ms: 15.0,
-            };
-
-            match send_telemetry_ingest(&payload).await {
-                Ok(_) => {
-                    edge_health.store(true, Ordering::SeqCst);
+                    if buffer.len() < 100 {
+                        buffer.push(serde_json::json!({
+                            "cpu": cpu,
+                            "memory": ram,
+                            "latency": 15.0,
+                            "workers": 1,
+                            "timestamp": chrono::Utc::now().to_rfc3339()
+                        }));
+                    }
                 }
-                Err(_) => {
-                    edge_health.store(false, Ordering::SeqCst);
-                    tokio::time::sleep(Duration::from_secs(5)).await;
+                _ = flush_interval.tick() => {
+                    if !buffer.is_empty() {
+                        let client = Client::new();
+                        let url = format!(
+                            "{}/api/telemetry",
+                            option_env!("ONYX_EDGE_API_URL").unwrap_or(DEFAULT_EDGE_API_URL).trim_end_matches('/')
+                        );
+
+                        let batch = std::mem::take(&mut buffer);
+                        let res = client.post(&url)
+                            .header("Authorization", "Bearer MOCK_TOKEN")
+                            .json(&batch)
+                            .send()
+                            .await;
+
+                        match res {
+                            Ok(r) if r.status().is_success() => {
+                                edge_health.store(true, Ordering::SeqCst);
+                            }
+                            _ => {
+                                edge_health.store(false, Ordering::SeqCst);
+                                // fail silently, data is lost (or we could re-insert to buffer up to 100)
+                                // The prompt says: "fail silently in the background and buffer up to a maximum of 100 records in memory"
+                                // I will put them back if buffer has space
+                                let mut recovered = batch;
+                                while recovered.len() > 0 && buffer.len() < 100 {
+                                    buffer.push(recovered.remove(0));
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

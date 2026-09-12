@@ -20,6 +20,7 @@ export default function TelemetryChart() {
   const telemetrySource = useDesktopAgentStore(state => state.telemetrySource);
   const networkLatencyMs = useDesktopAgentStore(state => state.networkLatencyMs);
   const heartbeatStatus = useDesktopAgentStore(state => state.heartbeatStatus);
+  const agentStatus = useDesktopAgentStore(state => state.agentStatus);
 
   const chartRef = useRef(null);
 
@@ -160,16 +161,17 @@ export default function TelemetryChart() {
              <span className="text-slate-400">PKT_DROP:</span>
              <span className="text-emerald-400">0.0%</span>
           </div>
-          <div className="flex items-center gap-1 mt-0.5">
-             <span className="text-slate-400">ORIGIN:</span>
+                    <div className="flex items-center gap-1 mt-0.5">
+             <span className="text-slate-400">STATUS:</span>
              <span className={
-         heartbeatStatus === 'nominal' ? 'text-emerald-400 uppercase' :
-         heartbeatStatus === 'degraded' ? 'text-amber-400 uppercase animate-pulse' :
-         'text-red-400 uppercase'
-       }>{heartbeatStatus || 'standby'}</span>
+               agentStatus === 'online' ? 'text-emerald-400 uppercase' :
+               agentStatus === 'degraded' ? 'text-amber-400 uppercase animate-pulse' :
+               'text-red-400 uppercase'
+             }>{agentStatus || 'standby'}</span>
           </div>
         </div>
-        <ReactECharts ref={chartRef} option={option} style={{ height: '100%', width: '100%' }} />
+        <ReactECharts ref={chartRef} option={option} opts={{ renderer: 'svg' }} style={{ height: '100%', width: '100%', opacity: agentStatus === 'degraded' || agentStatus === 'offline' ? 0.6 : 1 }} />
+        {agentStatus === 'degraded' && <div className="absolute inset-0 flex items-center justify-center text-[10px] text-amber-500/50 pointer-events-none">[SYNTHETIC_SMOOTHING]</div>}
       </div>
     </ErrorBoundary>
   );

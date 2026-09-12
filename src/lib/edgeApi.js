@@ -25,3 +25,30 @@ export async function getTelemetry(since, limit) {
   if (!res.ok) throw new Error('Failed to fetch telemetry');
   return res.json();
 }
+
+export async function fetchRecentTelemetry(limit = 30) {
+  const url = `/api/telemetry/recent?limit=${limit}`;
+  const res = await edgeFetch(url);
+  if (!res.ok) {
+    if (res.status >= 500) throw new Error('Edge API Error');
+    throw new Error('Failed to fetch telemetry');
+  }
+  return res.json();
+}
+
+export async function pushTelemetryBatch(batch) {
+  const url = `/api/telemetry`;
+  const res = await edgeFetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer MOCK_TOKEN'
+    },
+    body: JSON.stringify(batch)
+  });
+  if (!res.ok) {
+    if (res.status >= 500) throw new Error('Edge API Error');
+    throw new Error('Failed to push telemetry');
+  }
+  return res.json();
+}

@@ -7,9 +7,14 @@ import { useAgentConnection } from './hooks/useAgentConnection';
 import { aximCoreClient, isSupabaseConfigured } from './lib/supabaseClient';
 
 function App() {
-  const { currentView, walletConnected, loginUser, logoutUser } = useDesktopAgentStore();
+  const { currentView, walletConnected, loginUser, logoutUser, startTelemetryPolling } = useDesktopAgentStore();
 
   useAgentConnection();
+
+  useEffect(() => {
+    startTelemetryPolling();
+  }, [startTelemetryPolling]);
+
 
   useEffect(() => {
     if (!isSupabaseConfigured) {

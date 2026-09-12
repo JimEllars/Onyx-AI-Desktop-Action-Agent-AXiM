@@ -6,5 +6,5 @@ const supabaseAnonKey = import.meta.env.VITE_AXIM_CORE_ANON_KEY?.trim();
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const aximCoreClient = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, { auth: { persistSession: true, storage: window.localStorage, autoRefreshToken: true, detectSessionInUrl: true } })
   : null;
