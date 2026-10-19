@@ -10,39 +10,14 @@ export default function DropZone({ targetApplication }) {
   const [isDragging, setIsActiveDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [conversionStatus, setConversionStatus] = useState('');
+  const fileInputRef = React.useRef(null);
   const [currentPayloadSize, setCurrentPayloadSize] = useState(0);
   const [detectedFormat, setDetectedFormat] = useState('RAW');
   const [isSuccess, setIsSuccess] = useState(false);
   const { operatorAddress, localQueueCount, incrementLocalBufferQueue, addActionLog, updateCloudflareMetrics, systemStatus, setSystemStatus, isLiveChannelConnected } = useDesktopAgentStore();
 
-  const handleDrop = async (e) => {
-    e.preventDefault();
-    setIsActiveDragging(false);
-    updateCloudflareMetrics();
 
-    let droppedText = '';
-    let droppedFile = null;
-
-    if (e.dataTransfer.items) {
-      for (let i = 0; i < e.dataTransfer.items.length; i++) {
-        if (e.dataTransfer.items[i].kind === 'string' && e.dataTransfer.items[i].type.match('^text/plain')) {
-          droppedText = await new Promise(resolve => e.dataTransfer.items[i].getAsString(resolve));
-          break;
-        } else if (e.dataTransfer.items[i].kind === 'file') {
-          droppedFile = e.dataTransfer.items[i].getAsFile();
-          droppedText = await droppedFile.text();
-          break;
-        }
-      }
-    } else {
-      for (let i = 0; i < e.dataTransfer.files.length; i++) {
-        droppedFile = e.dataTransfer.files[i];
-        droppedText = await droppedFile.text();
-        break;
-      }
-    }
-
-
+  const processFile = async (droppedFile, droppedText) => {
     let format = 'RAW';
     const trimmedText = droppedText.trim();
     if (trimmedText.startsWith('{') || trimmedText.startsWith('[')) {
@@ -136,6 +111,47 @@ export default function DropZone({ targetApplication }) {
     }
   };
 
+  const handleFileInputChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    updateCloudflareMetrics();
+    const textContent = await file.text();
+    await processFile(file, textContent);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsActiveDragging(false);
+    updateCloudflareMetrics();
+
+    let droppedText = '';
+    let droppedFile = null;
+
+    if (e.dataTransfer.items) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        if (e.dataTransfer.items[i].kind === 'string' && e.dataTransfer.items[i].type.match('^text/plain')) {
+          droppedText = await new Promise(resolve => e.dataTransfer.items[i].getAsString(resolve));
+          break;
+        } else if (e.dataTransfer.items[i].kind === 'file') {
+          droppedFile = e.dataTransfer.items[i].getAsFile();
+          droppedText = await droppedFile.text();
+          break;
+        }
+      }
+    } else {
+      for (let i = 0; i < e.dataTransfer.files.length; i++) {
+        droppedFile = e.dataTransfer.files[i];
+        droppedText = await droppedFile.text();
+        break;
+      }
+    }
+
+    await processFile(droppedFile, droppedText);
+  }
+
   return (
     <motion.div
       onDragOver={(e) => { e.preventDefault(); if (systemStatus !== 'ERROR') setIsActiveDragging(true); }}
@@ -149,16 +165,17 @@ export default function DropZone({ targetApplication }) {
     >
 
       {isSuccess && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/40 rounded-xl backdrop-blur-sm z-10 animate-pulse">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-emerald-950/40 rounded-xl backdrop-blur-sm z-10 animate-pulse pointer-events-none">
           <span className="text-emerald-400 text-lg mb-2">✔</span>
           <span className="text-[10px] font-mono font-bold text-emerald-400 tracking-widest">[VECTOR_INGESTION_SUCCESS]</span>
         </div>
       )}
+      <input type="file" ref={fileInputRef} onChange={handleFileInputChange} className="hidden" accept=".json,.csv,.txt,.pdf,.docx,.html,.md" />
       <div className="min-h-[64px] flex flex-col justify-center items-center gap-3 pointer-events-none">
         {isProcessing ? (
           <>
             <div className="w-10 h-10 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin shadow-[0_0_15px_rgba(16,185,129,0.3)]"></div>
-            <div className="text-center">
+            <div className="text-center pointer-events-auto">
               <p className="text-[10px] text-emerald-400 font-mono font-bold tracking-widest animate-pulse">
                 {conversionStatus || `PARSING_EDGE_INGRESS_CHUNKS [${detectedFormat}] (${currentPayloadSize} KB)...`}
               </p>
@@ -169,9 +186,20 @@ export default function DropZone({ targetApplication }) {
             <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center group-hover:border-emerald-500/50 transition-colors">
               <SafeIcon icon={systemStatus === 'ERROR' ? null : FiFileText} className={`transition-colors ${systemStatus === 'ERROR' ? 'text-red-500 animate-pulse' : 'text-slate-600 group-hover:text-emerald-500'}`} />
             </div>
-            <div className="text-center">
+            <div className="text-center pointer-events-auto">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{systemStatus === 'ERROR' ? 'NODE WORKLOAD SUSPENDED' : 'Drop Command Frame'}</p>
-              <p className={`text-[8px] mt-1 font-bold tracking-wider ${isLiveChannelConnected ? 'text-slate-600' : 'text-amber-500/80'}`}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                disabled={systemStatus === 'ERROR' || isProcessing}
+                className="mt-2 text-[8px] font-mono font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-950/30 hover:bg-emerald-900/50 border border-emerald-500/40 px-2 py-1 rounded transition-colors uppercase cursor-pointer pointer-events-auto"
+              >
+                [BROWSE_FILES]
+              </button>
+              <p className={`text-[8px] mt-1 font-bold tracking-wider pointer-events-none ${isLiveChannelConnected ? 'text-slate-600' : 'text-amber-500/80'}`}>
        {systemStatus === 'ERROR'
          ? 'Clear local out-of-band cache blocks to restore ingestion channels'
          : isLiveChannelConnected
